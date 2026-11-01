@@ -2,10 +2,13 @@
 	import { base } from '$app/paths';
 	import Map, { type Shape } from '$lib/Map.svelte';
 	import StatusBar from '$lib/StatusBar.svelte';
+	import RankedBars from '$lib/RankedBars.svelte';
+	import ShareLegend from '$lib/ShareLegend.svelte';
 	import Trend from '$lib/Trend.svelte';
 	import { data as pub, latest, enforcing, known, STATUSES } from '$lib/data';
-	import { shareBins, shareVar, shareVars, statusVar } from '$lib/colors';
-	import { t, pct, date } from '$lib/i18n';
+	import { shareVar, statusVar } from '$lib/colors';
+	import { t, pct, date, cantonName } from '$lib/i18n';
+	import { ISSUES, MARCAN } from '$lib/content';
 	import cantonPaths from '$lib/geo/cantons.json';
 	import geo from '$lib/geo/base.json';
 
@@ -15,9 +18,21 @@
 
 	const now = latest(pub.national);
 	const total = now.reduce((a, b) => a + b, 0);
+	const share = enforcing(now);
+	const scanDate = latest(pub.scans);
 	const cantonByNr = new globalThis.Map(pub.cantons.map((c) => [String(c.nr), c]));
 	const munis = pub.municipalities ?? [];
 	const muniByBfs = new globalThis.Map(munis.map((m) => [String(m.bfs), m]));
+
+	// Extremes for the intro, among cantons with enough municipalities to compare.
+	const comparable = pub.cantons
+		.filter((c) => known(latest(c.series)) >= 10)
+		.sort((a, b) => enforcing(latest(b.series)) - enforcing(latest(a.series)));
+	const top = comparable[0];
+	const bottom = comparable[comparable.length - 1];
+
+	// Table: share first after the name, so it stays visible on phones.
+	const sorted = [...pub.cantons].sort((a, b) => enforcing(latest(b.series)) - enforcing(latest(a.series)));
 
 	let hover: string | null = $state(null);
 
@@ -32,12 +47,12 @@
 			}));
 		}
 		return pub.cantons.map((c) => {
-			const share = enforcing(latest(c.series));
+			const s = enforcing(latest(c.series));
 			return {
 				id: String(c.nr),
 				d: (cantonPaths as Record<string, string>)[String(c.nr)],
-				fill: shareVar(share),
-				title: `${c.name}: ${pct(lang, share)} ${tr.enforcing.toLowerCase()}`,
+				fill: shareVar(s),
+				title: `${cantonName(lang, c.code)}: ${pct(lang, s)} ${tr.enforcing.toLowerCase()}`,
 				href: `${base}/${lang}/kanton/${c.code.toLowerCase()}/`
 			};
 		});
@@ -60,17 +75,8 @@
 			return m ? { title: `${m.name} (${m.canton})`, sub: `${tr.status[m.status]}${m.policy ? ` · ${m.policy}` : ''}` } : null;
 		}
 		const c = cantonByNr.get(hover);
-		return c ? { title: c.name, counts: latest(c.series) } : null;
+		return c ? { title: cantonName(lang, c.code), counts: latest(c.series) } : null;
 	});
-
-	const sorted = [...pub.cantons].sort((a, b) => enforcing(latest(b.series)) - enforcing(latest(a.series)));
-	const binLabels = $derived(
-		shareVars.map((_, i) => {
-			const lo = i === 0 ? 0 : shareBins[i - 1];
-			const hi = i < shareBins.length ? shareBins[i] : 1;
-			return `${pct(lang, lo)}–${pct(lang, hi)}`;
-		})
-	);
 </script>
 
 <svelte:head>
@@ -78,26 +84,50 @@
 	<meta name="description" content={tr.tagline} />
 </svelte:head>
 
-<p class="muted lead">{tr.tagline}</p>
+<header class="intro">
+	<p class="kicker">{tr.kicker(date(lang, scanDate))}</p>
+	<h1>{tr.title(share)}</h1>
+	<p class="dek">
+		{tr.dek(
+			cantonName(lang, top.code),
+			pct(lang, enforcing(latest(top.series))),
+			cantonName(lang, bottom.code),
+			pct(lang, enforcing(latest(bottom.series))),
+			pct(lang, now[2] / known(now))
+		)}
+	</p>
+</header>
 
-<section class="hero">
-	<h1><span class="big">{pct(lang, enforcing(now))}</span> <span>{tr.headline}</span></h1>
-	<div>
-		<p class="muted">
-			{tr.headlineSub(known(now), total)} · {tr.noDmarc(pct(lang, now[3] / known(now)))} · {tr.monitoringOnly(pct(lang, now[2] / known(now)))}
-		</p>
-	</div>
+<section class="national">
+	<StatusBar counts={now} {lang} />
+	<p class="small muted">{tr.headlineSub(known(now), total)}. {tr.unknownNote(now[4])}</p>
 </section>
 
 <section>
-	<h2>{tr.mapTitle}</h2>
-	<div class="map-grid">
+	<p class="kicker">{tr.byCanton}</p>
+	<h2>{tr.rankTitle}</h2>
+	<p class="small muted sub">{tr.rankSub}</p>
+	<RankedBars cantons={pub.cantons} national={now} {lang} />
+</section>
+
+<section class="map-grid">
+	<div>
+		<p class="kicker">{tr.mapLocator}</p>
 		<div class="map-box">
 			<Map {shapes} {labels} label={tr.mapTitle} selected={hover} onhover={(id) => (hover = id)} />
 		</div>
-		<aside class="side">
+		<div class="under-map">
+			{#if data.muniPaths}
+				<ul class="status-key">
+					{#each STATUSES as s}
+						<li><span class="swatch {s}"></span>{tr.status[s]}</li>
+					{/each}
+				</ul>
+			{:else}
+				<ShareLegend {lang} title={tr.legendShare} average={share} averageLabel={tr.average(pct(lang, share))} />
+			{/if}
 			{#if hovered}
-				<div class="card">
+				<div class="card hover-card">
 					<strong>{hovered.title}</strong>
 					{#if 'counts' in hovered && hovered.counts}
 						<p class="muted small">{pct(lang, enforcing(hovered.counts))} {tr.enforcing.toLowerCase()}</p>
@@ -107,93 +137,92 @@
 					{/if}
 				</div>
 			{/if}
-			<div class="legend">
-				{#if data.muniPaths}
-					<ul>
-						{#each STATUSES as s}
-							<li><span class="swatch {s}"></span>{tr.status[s]}</li>
-						{/each}
-					</ul>
-				{:else}
-					<p class="small muted">{tr.legendShare}</p>
-					<ul>
-						{#each shareVars as _, i}
-							<li><span class="swatch bin{i}"></span>{binLabels[i]}</li>
-						{/each}
-					</ul>
-					<p class="small muted">{tr.cantonDetailLater}</p>
-				{/if}
-			</div>
-		</aside>
+		</div>
 	</div>
+	<aside class="card about">
+		<h2>{tr.aboutTitle}</h2>
+		<p class="small">{tr.aboutBody(date(lang, scanDate), total)}</p>
+		<p class="small">{tr.firstStep(now[2], pct(lang, now[2] / known(now)))} <a href="{base}/{lang}/guide/">{tr.howToImprove}</a></p>
+		{#if !data.muniPaths}
+			<p class="small muted">{tr.cantonDetailLater}</p>
+		{/if}
+		<p class="small">
+			<a href="{base}/{lang}/method/">{tr.aboutMethod}</a> ·
+			<a href={ISSUES} rel="noopener">{tr.footerCorrections}</a>
+		</p>
+		<p class="small muted">{tr.footerBuilt} <a href={MARCAN} rel="noopener">Marcan</a></p>
+	</aside>
 </section>
 
 <section>
-	<h2>{tr.municipalities}</h2>
-	<StatusBar counts={now} {lang} />
-	<p class="small muted">{tr.unknownNote(now[4])}</p>
-</section>
-
-<section>
-	<h2>{tr.trendTitle}</h2>
+	<p class="kicker">{tr.trendTitle}</p>
+	<h2>{tr.enforcing}</h2>
 	<Trend series={pub.national} scans={pub.scans} {lang} />
 </section>
 
-<section>
-	<h2>{tr.byCanton}</h2>
+<details class="table-view">
+	<summary>{tr.tableView}</summary>
 	<div class="table-scroll">
 		<table>
 			<thead>
 				<tr>
 					<th>{tr.canton}</th>
+					<th class="num">{tr.enforcing}</th>
 					<th class="num">{tr.municipalities}</th>
 					{#each STATUSES as s}
 						<th class="num"><span class="swatch {s}"></span><span class="sr-only">{tr.status[s]}</span></th>
 					{/each}
-					<th class="num">{tr.enforcingShare}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each sorted as c}
 					{@const n = latest(c.series)}
 					<tr>
-						<td><a href="{base}/{lang}/kanton/{c.code.toLowerCase()}/">{c.name}</a></td>
+						<td><a href="{base}/{lang}/kanton/{c.code.toLowerCase()}/">{cantonName(lang, c.code)}</a></td>
+						<td class="num"><strong>{pct(lang, enforcing(n))}</strong></td>
 						<td class="num">{n.reduce((a, b) => a + b, 0)}</td>
 						{#each n as v}
 							<td class="num">{v}</td>
 						{/each}
-						<td class="num"><strong>{pct(lang, enforcing(n))}</strong></td>
 					</tr>
 				{/each}
 			</tbody>
 		</table>
 	</div>
-	<p class="small muted">{tr.scanOf(date(lang, latest(pub.scans)))}</p>
-</section>
+	<p class="small muted">{tr.scanOf(date(lang, scanDate))}</p>
+</details>
 
 <style>
-	.lead {
-		font-size: 1.05rem;
-		margin-bottom: 0.5rem;
+	.intro {
+		margin-bottom: 1.2rem;
 	}
-	.hero h1 {
-		margin: 0 0 0.3rem;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.2rem 1.2rem;
+	.intro h1 {
+		margin: 0.35rem 0 0.7rem;
 	}
-	.big {
-		font-size: clamp(3rem, 10vw, 5rem);
-		font-weight: 750;
-		line-height: 1;
-		color: var(--accent);
-		font-variant-numeric: tabular-nums;
+	.dek {
+		margin: 0;
+	}
+	.national {
+		max-width: 46rem;
+	}
+	section {
+		margin: 2.4rem 0 1rem;
+	}
+	section h2 {
+		margin: 0.25rem 0 0.3rem;
+		font-family: var(--serif);
+		font-size: 1.45rem;
+	}
+	.sub {
+		margin: 0 0 0.9rem;
+	}
+	.kicker {
+		margin: 0;
 	}
 	.map-grid {
 		display: grid;
-		grid-template-columns: minmax(0, 3fr) minmax(12rem, 1fr);
-		gap: 1.5rem;
+		grid-template-columns: minmax(0, 3fr) minmax(14rem, 1.2fr);
+		gap: 2rem;
 		align-items: start;
 	}
 	@media (max-width: 760px) {
@@ -201,36 +230,45 @@
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}
-	.side {
-		display: grid;
-		gap: 1rem;
+	.map-box {
+		margin-top: 0.5rem;
 	}
-	.legend ul {
+	.under-map {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem 2rem;
+		align-items: flex-start;
+		margin-top: 0.6rem;
+	}
+	.hover-card {
+		min-width: 12rem;
+		flex: 1;
+	}
+	.hover-card p {
+		margin: 0.2rem 0 0.4rem;
+	}
+	.status-key {
 		list-style: none;
 		padding: 0;
-		margin: 0.3rem 0;
-		display: grid;
-		gap: 0.25rem;
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.2rem 1rem;
+		font-size: 0.88rem;
+	}
+	.about h2 {
+		font-size: 1.1rem;
+		margin-top: 0;
 	}
 	.small {
 		font-size: 0.88rem;
 	}
-	.swatch.bin0 {
-		background: var(--b0);
+	.table-view {
+		margin: 2rem 0 1rem;
 	}
-	.swatch.bin1 {
-		background: var(--b1);
-	}
-	.swatch.bin2 {
-		background: var(--b2);
-	}
-	.swatch.bin3 {
-		background: var(--b3);
-	}
-	.swatch.bin4 {
-		background: var(--b4);
-	}
-	section {
-		margin-bottom: 1rem;
+	.table-view summary {
+		cursor: pointer;
+		font-weight: 600;
+		color: var(--accent);
 	}
 </style>

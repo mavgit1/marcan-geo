@@ -83,6 +83,9 @@
 	}
 	.lake {
 		fill: var(--lake);
+		stroke: var(--line);
+		stroke-width: 0.6px;
+		vector-effect: non-scaling-stroke;
 		pointer-events: none;
 	}
 	.shared {

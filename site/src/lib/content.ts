@@ -36,12 +36,12 @@ interface Method {
 }
 
 const tool = (name: string, url: string, desc: string): Tool => ({ name, url, desc });
-const MARCAN = 'https://marcan.kaitiaki.tech/';
+export const MARCAN = 'https://marcan.kaitiaki.tech/';
 const PARSEDMARC = 'https://github.com/domainaware/parsedmarc';
 const CLOUDFLARE = 'https://developers.cloudflare.com/dmarc-management/';
 const POSTMARK = 'https://dmarc.postmarkapp.com/';
 const DMARCIAN = 'https://dmarcian.com/';
-const ISSUES = 'https://github.com/mavgit1/marcan-geo/issues';
+export const ISSUES = 'https://github.com/mavgit1/marcan-geo/issues';
 const REC_NONE = 'v=DMARC1; p=none; rua=mailto:dmarc@example.ch';
 const REC_Q = 'v=DMARC1; p=quarantine; rua=mailto:dmarc@example.ch';
 const REC_R = 'v=DMARC1; p=reject; rua=mailto:dmarc@example.ch';

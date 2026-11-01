@@ -1,5 +1,6 @@
 <script lang="ts">
-	// Stacked share of each status over the scans, plus the enforcing line.
+	// Stacked share of each status over the scans, plus the line for the share
+	// that blocks or filters. Scans are irregular, so x is real time.
 	import { STATUSES, enforcing, known, type Counts } from './data';
 	import { t, pct, date, type Lang } from './i18n';
 
@@ -7,8 +8,23 @@
 
 	const W = 640;
 	const H = 200;
-	const P = { l: 36, r: 12, t: 10, b: 26 };
-	const x = (i: number) => P.l + (series.length < 2 ? 0 : (i / (series.length - 1)) * (W - P.l - P.r));
+	const P = { t: 10, b: 30 };
+	const P2 = { l: 44, r: 52 };
+	const time = $derived(scans.map((d) => Date.parse(d + 'T00:00:00Z')));
+	const x = (i: number) => {
+		const span = time[time.length - 1] - time[0];
+		return P2.l + (span ? (time[i] - time[0]) / span : 0) * (W - P2.l - P2.r);
+	};
+	// Date ticks at the first and last scan, and at others with room.
+	const ticks = $derived.by(() => {
+		const last = scans.length - 1;
+		const out = [0];
+		for (let i = 1; i < last; i++) {
+			if (x(i) - x(out[out.length - 1]) > 120 && x(last) - x(i) > 120) out.push(i);
+		}
+		if (last > 0) out.push(last);
+		return out;
+	});
 	const y = (v: number) => P.t + (1 - v) * (H - P.t - P.b);
 
 	// Known statuses only (unknown is not part of the base).
@@ -32,15 +48,20 @@
 {:else}
 	<svg viewBox="0 0 {W} {H}" class="trend" role="img" aria-label="{t(lang).enforcingShare}: {series.map((c, i) => `${date(lang, scans[i])} ${pct(lang, enforcing(c))}`).join(', ')}">
 		{#each [0, 0.25, 0.5, 0.75, 1] as v}
-			<line x1={P.l} x2={W - P.r} y1={y(v)} y2={y(v)} class="grid" />
-			<text x={P.l - 6} y={y(v)} class="tick" text-anchor="end" dominant-baseline="middle">{pct(lang, v)}</text>
+			<line x1={P2.l} x2={W - P2.r} y1={y(v)} y2={y(v)} class="grid" />
+			<text x={P2.l - 6} y={y(v)} class="tick" text-anchor="end" dominant-baseline="middle">{pct(lang, v)}</text>
 		{/each}
 		{#each bands as b}
 			<path d={b.d} class="band {b.key}" />
 		{/each}
 		<path d="M{line}" class="enf" />
-		<text x={P.l} y={H - 6} class="tick">{date(lang, scans[0])}</text>
-		<text x={W - P.r} y={H - 6} class="tick" text-anchor="end">{date(lang, scans[scans.length - 1])}</text>
+		{#each series as c, i}
+			<circle cx={x(i)} cy={y(enforcing(c))} r="4" class="dot"><title>{date(lang, scans[i])}: {pct(lang, enforcing(c))}</title></circle>
+		{/each}
+		<text x={x(series.length - 1) + 8} y={y(enforcing(series[series.length - 1]))} class="val" dominant-baseline="middle">{pct(lang, enforcing(series[series.length - 1]))}</text>
+		{#each ticks as i, k}
+			<text x={x(i)} y={H - 6} class="tick" text-anchor={k === 0 ? 'start' : k === ticks.length - 1 ? 'end' : 'middle'}>{date(lang, scans[i])}</text>
+		{/each}
 	</svg>
 {/if}
 
@@ -55,7 +76,7 @@
 		stroke-width: 1;
 	}
 	.tick {
-		font-size: 11px;
+		font-size: 14px;
 		fill: var(--muted);
 	}
 	.band {
@@ -72,6 +93,16 @@
 	}
 	.none {
 		fill: var(--s-none);
+	}
+	.dot {
+		fill: var(--fg);
+		stroke: var(--bg);
+		stroke-width: 2;
+	}
+	.val {
+		font-size: 16px;
+		font-weight: 650;
+		fill: var(--fg);
 	}
 	.enf {
 		fill: none;

@@ -5,7 +5,8 @@
 	--muted-bg: #eef1f4;
 	--line: #d9dee3;
 	--accent: #2166ac;
-	--lake: #cfe3f1;
+	--lake: #f3f5f7;
+	--serif: ui-serif, Georgia, 'Times New Roman', serif;
 
 	/* Status colours: blue (good) to red (bad). */
 	--s-blocked: #2166ac;
@@ -13,12 +14,12 @@
 	--s-monitoring: #f0b44c;
 	--s-none: #c4413a;
 
-	/* Canton map bins, share enforcing: low to high. */
-	--b0: #c4413a;
-	--b1: #ec8a5e;
-	--b2: #f3d9a6;
-	--b3: #8fbedc;
-	--b4: #2166ac;
+	/* Canton map, share blocking or filtering: one hue, light (low) to dark (high). */
+	--b0: #e3edf6;
+	--b1: #b3cfe6;
+	--b2: #7fafd5;
+	--b3: #4a87bf;
+	--b4: #1d5a99;
 
 	--radius: 10px;
 	--max: 72rem;
@@ -38,16 +39,16 @@
 		--muted-bg: #222a32;
 		--line: #2f3943;
 		--accent: #7fb6e6;
-		--lake: #1d3447;
+		--lake: #171d23;
 		--s-blocked: #4f93d1;
 		--s-filtered: #9cc8e6;
 		--s-monitoring: #e6a93d;
 		--s-none: #e0605a;
-		--b0: #d4544d;
-		--b1: #e48b62;
-		--b2: #d9c393;
-		--b3: #8ab8d8;
-		--b4: #4f93d1;
+		--b0: #1e2c3a;
+		--b1: #23466a;
+		--b2: #2c6698;
+		--b3: #4a8ccb;
+		--b4: #8cc0ec;
 	}
 }
 
@@ -74,8 +75,29 @@ h3 {
 }
 
 h1 {
-	font-size: clamp(1.6rem, 4vw, 2.3rem);
-	margin-top: 0.4em;
+	font-family: var(--serif);
+	font-weight: 700;
+	font-size: clamp(1.8rem, 5vw, 2.7rem);
+	line-height: 1.12;
+	letter-spacing: -0.01em;
+	margin-top: 0.3em;
+	max-width: 22em;
+}
+
+.kicker {
+	font-size: 0.78rem;
+	font-weight: 650;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin: 1.4rem 0 0;
+}
+
+.dek {
+	font-family: var(--serif);
+	font-size: clamp(1.08rem, 2.4vw, 1.25rem);
+	line-height: 1.5;
+	max-width: 40rem;
 }
 
 h2 {

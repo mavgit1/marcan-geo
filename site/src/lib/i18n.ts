@@ -53,6 +53,20 @@ type Dict = {
 	footerBuilt: string;
 	footerCorrections: string;
 	tableView: string;
+	kicker: (date: string) => string;
+	title: (share: number) => string;
+	dek: (top: string, topP: string, bottom: string, bottomP: string, mon: string) => string;
+	firstStep: (n: number, p: string) => string;
+	rankTitle: string;
+	rankSub: string;
+	average: (p: string) => string;
+	smallN: string;
+	mapLocator: string;
+	aboutTitle: string;
+	aboutBody: (date: string, n: number) => string;
+	aboutMethod: string;
+	rank: (r: number, of: number) => string;
+	vsNational: (p: string) => string;
 };
 
 const de: Dict = {
@@ -72,8 +86,8 @@ const de: Dict = {
 	noDmarc: (p) => `${p} haben gar kein DMARC`,
 	monitoringOnly: (p) => `${p} überwachen nur`,
 	unknownNote: (n) => `${n} Gemeinden ohne auswertbare Daten (keine Website oder DNS-Fehler) sind nicht mitgezählt.`,
-	enforcing: 'Durchsetzend',
-	enforcingShare: 'Anteil durchsetzend',
+	enforcing: 'Blockieren oder filtern',
+	enforcingShare: 'Blockieren oder filtern',
 	canton: 'Kanton',
 	cantons: 'Kantone',
 	municipalities: 'Gemeinden',
@@ -85,7 +99,7 @@ const de: Dict = {
 	cantonDetailLater: 'Angaben zu einzelnen Gemeinden folgen, sobald die Kantone informiert sind.',
 	share: 'Anteil',
 	count: 'Anzahl',
-	legendShare: 'Anteil der Gemeinden, die durchsetzen',
+	legendShare: 'Anteil der Gemeinden, die gefälschte Mails blockieren oder filtern',
 	backToOverview: 'Zur Übersicht',
 	howToImprove: 'So verbessern',
 	policy: 'DMARC-Richtlinie',
@@ -98,7 +112,21 @@ const de: Dict = {
 	footerData: 'Grenzen © swisstopo · Gemeindeliste BFS · Websites Wikidata',
 	footerBuilt: 'Erstellt vom Autor von Marcan. Methode und Code sind öffentlich.',
 	footerCorrections: 'Korrekturen melden',
-	tableView: 'Als Tabelle'
+	tableView: 'Als Tabelle',
+	kicker: (d) => `DMARC-Monitor · Stand ${d}`,
+	title: (x) => (x < 0.5 ? 'Weniger als die Hälfte der Gemeinden wehrt gefälschte Mails ab' : 'Mehr als die Hälfte der Gemeinden wehrt gefälschte Mails ab'),
+	dek: (t, tp, b, bp, m) => `Zwischen den Kantonen liegen Welten: In ${t} blockieren oder filtern ${tp} der Gemeinden gefälschte Mails mit ihrem Absender, in ${b} sind es ${bp}. Weitere ${m} überwachen bereits – ihnen fehlt ein einziger Schritt.`,
+	firstStep: (n, p) => `${n} Gemeinden (${p}) haben den ersten Schritt gemacht: Sie überwachen bereits und sind einen Schritt vom Schutz entfernt.`,
+	rankTitle: 'Grosse Unterschiede zwischen den Kantonen',
+	rankSub: 'Gemeinden nach Schutz, Kantone sortiert nach dem Anteil, der gefälschte Mails blockiert oder filtert. Linie: Schweiz.',
+	average: (p) => `Schweiz ${p}`,
+	smallN: 'Weniger als 10 Gemeinden: Anteile schwanken stark.',
+	mapLocator: 'Auf der Karte',
+	aboutTitle: 'Über diese Daten',
+	aboutBody: (d, n) => `Gemessen am ${d}: die öffentlichen DNS-Einträge (DMARC, SPF, MX) aller ${n} Gemeinden. Es wurden keine Mails verschickt und keine Server der Gemeinden kontaktiert.`,
+	aboutMethod: 'So wird gemessen',
+	rank: (r, n) => `Rang ${r} von ${n}`,
+	vsNational: (p) => `Schweiz: ${p}`,
 };
 
 const fr: Dict = {
@@ -118,8 +146,8 @@ const fr: Dict = {
 	noDmarc: (p) => `${p} n’ont aucun DMARC`,
 	monitoringOnly: (p) => `${p} surveillent seulement`,
 	unknownNote: (n) => `${n} communes sans données exploitables (pas de site web ou erreur DNS) ne sont pas comptées.`,
-	enforcing: 'Appliquée',
-	enforcingShare: 'Part appliquée',
+	enforcing: 'Bloquent ou filtrent',
+	enforcingShare: 'Bloquent ou filtrent',
 	canton: 'Canton',
 	cantons: 'Cantons',
 	municipalities: 'Communes',
@@ -131,7 +159,7 @@ const fr: Dict = {
 	cantonDetailLater: 'Les détails par commune suivront une fois les cantons informés.',
 	share: 'Part',
 	count: 'Nombre',
-	legendShare: 'Part des communes qui appliquent une politique',
+	legendShare: 'Part des communes qui bloquent ou filtrent les e-mails usurpés',
 	backToOverview: 'Retour à l’aperçu',
 	howToImprove: 'Comment améliorer',
 	policy: 'Politique DMARC',
@@ -144,7 +172,21 @@ const fr: Dict = {
 	footerData: 'Limites © swisstopo · Liste des communes OFS · Sites web Wikidata',
 	footerBuilt: 'Réalisé par l’auteur de Marcan. Méthode et code publics.',
 	footerCorrections: 'Signaler une correction',
-	tableView: 'En tableau'
+	tableView: 'En tableau',
+	kicker: (d) => `Observatoire DMARC · état au ${d}`,
+	title: (x) => (x < 0.5 ? 'Moins de la moitié des communes repoussent les e-mails usurpés' : 'Plus de la moitié des communes repoussent les e-mails usurpés'),
+	dek: (t, tp, b, bp, m) => `D’un canton à l’autre, l’écart est énorme. ${t} : ${tp} des communes bloquent ou filtrent les e-mails qui usurpent leur adresse. ${b} : ${bp}. ${m} des communes surveillent déjà – il ne leur manque qu’une étape.`,
+	firstStep: (n, p) => `${n} communes (${p}) ont fait le premier pas : elles surveillent déjà et ne sont qu’à une étape de la protection.`,
+	rankTitle: 'De grandes différences entre les cantons',
+	rankSub: 'Communes selon leur protection, cantons triés par la part qui bloque ou filtre les e-mails usurpés. Ligne : Suisse.',
+	average: (p) => `Suisse ${p}`,
+	smallN: 'Moins de 10 communes : les parts varient fortement.',
+	mapLocator: 'Sur la carte',
+	aboutTitle: 'À propos de ces données',
+	aboutBody: (d, n) => `Mesuré le ${d} : les enregistrements DNS publics (DMARC, SPF, MX) des ${n} communes. Aucun e-mail n’a été envoyé et aucun serveur communal n’a été contacté.`,
+	aboutMethod: 'Méthode de mesure',
+	rank: (r, n) => `Rang ${r} sur ${n}`,
+	vsNational: (p) => `Suisse : ${p}`,
 };
 
 const it: Dict = {
@@ -164,8 +206,8 @@ const it: Dict = {
 	noDmarc: (p) => `il ${p} non ha alcun DMARC`,
 	monitoringOnly: (p) => `il ${p} si limita al monitoraggio`,
 	unknownNote: (n) => `${n} comuni senza dati utilizzabili (nessun sito web o errore DNS) non sono conteggiati.`,
-	enforcing: 'Applicata',
-	enforcingShare: 'Quota applicata',
+	enforcing: 'Bloccano o filtrano',
+	enforcingShare: 'Bloccano o filtrano',
 	canton: 'Cantone',
 	cantons: 'Cantoni',
 	municipalities: 'Comuni',
@@ -177,7 +219,7 @@ const it: Dict = {
 	cantonDetailLater: 'I dettagli per comune seguiranno dopo che i cantoni saranno stati informati.',
 	share: 'Quota',
 	count: 'Numero',
-	legendShare: 'Quota dei comuni che applicano una politica',
+	legendShare: 'Quota dei comuni che bloccano o filtrano le e-mail falsificate',
 	backToOverview: 'Torna alla panoramica',
 	howToImprove: 'Come migliorare',
 	policy: 'Politica DMARC',
@@ -190,7 +232,21 @@ const it: Dict = {
 	footerData: 'Confini © swisstopo · Elenco dei comuni UST · Siti web Wikidata',
 	footerBuilt: 'Realizzato dall’autore di Marcan. Metodo e codice sono pubblici.',
 	footerCorrections: 'Segnala una correzione',
-	tableView: 'Come tabella'
+	tableView: 'Come tabella',
+	kicker: (d) => `Osservatorio DMARC · stato al ${d}`,
+	title: (x) => (x < 0.5 ? 'Meno della metà dei comuni respinge le e-mail falsificate' : 'Più della metà dei comuni respinge le e-mail falsificate'),
+	dek: (t, tp, b, bp, m) => `Tra i cantoni c’è un abisso. ${t}: il ${tp} dei comuni blocca o filtra le e-mail che ne falsificano l’indirizzo. ${b}: il ${bp}. Un altro ${m} dei comuni monitora già – manca un solo passo.`,
+	firstStep: (n, p) => `${n} comuni (${p}) hanno fatto il primo passo: monitorano già e sono a un passo dalla protezione.`,
+	rankTitle: 'Grandi differenze tra i cantoni',
+	rankSub: 'Comuni secondo la protezione, cantoni ordinati per la quota che blocca o filtra le e-mail falsificate. Linea: Svizzera.',
+	average: (p) => `Svizzera ${p}`,
+	smallN: 'Meno di 10 comuni: le quote variano molto.',
+	mapLocator: 'Sulla carta',
+	aboutTitle: 'Su questi dati',
+	aboutBody: (d, n) => `Misurato il ${d}: i record DNS pubblici (DMARC, SPF, MX) di tutti i ${n} comuni. Non è stata inviata alcuna e-mail e non è stato contattato alcun server comunale.`,
+	aboutMethod: 'Come misuriamo',
+	rank: (r, n) => `${r}° su ${n}`,
+	vsNational: (p) => `Svizzera: ${p}`,
 };
 
 const en: Dict = {
@@ -210,8 +266,8 @@ const en: Dict = {
 	noDmarc: (p) => `${p} have no DMARC at all`,
 	monitoringOnly: (p) => `${p} only monitor`,
 	unknownNote: (n) => `${n} municipalities without usable data (no website or a DNS error) are not counted.`,
-	enforcing: 'Enforcing',
-	enforcingShare: 'Share enforcing',
+	enforcing: 'Block or filter',
+	enforcingShare: 'Block or filter',
 	canton: 'Canton',
 	cantons: 'Cantons',
 	municipalities: 'Municipalities',
@@ -223,7 +279,7 @@ const en: Dict = {
 	cantonDetailLater: 'Details for individual municipalities follow once the cantons have been informed.',
 	share: 'Share',
 	count: 'Count',
-	legendShare: 'Share of municipalities enforcing a policy',
+	legendShare: 'Share of municipalities that block or filter spoofed mail',
 	backToOverview: 'Back to overview',
 	howToImprove: 'How to improve',
 	policy: 'DMARC policy',
@@ -236,7 +292,21 @@ const en: Dict = {
 	footerData: 'Boundaries © swisstopo · Municipality list FSO · Websites Wikidata',
 	footerBuilt: 'Built by the author of Marcan. Method and code are public.',
 	footerCorrections: 'Report a correction',
-	tableView: 'As a table'
+	tableView: 'As a table',
+	kicker: (d) => `DMARC Monitor · as of ${d}`,
+	title: (x) => (x < 0.5 ? 'Fewer than half of Swiss municipalities fend off spoofed mail' : 'More than half of Swiss municipalities fend off spoofed mail'),
+	dek: (t, tp, b, bp, m) => `The cantons are worlds apart: in ${t}, ${tp} of municipalities block or filter mail that fakes their address; in ${b}, ${bp}. Another ${m} already monitor – they are one step away.`,
+	firstStep: (n, p) => `${n} municipalities (${p}) have taken the first step: they already monitor and are one step from protection.`,
+	rankTitle: 'Large differences between cantons',
+	rankSub: 'Municipalities by protection, cantons sorted by the share that blocks or filters spoofed mail. Line: Switzerland.',
+	average: (p) => `Switzerland ${p}`,
+	smallN: 'Fewer than 10 municipalities: shares vary a lot.',
+	mapLocator: 'On the map',
+	aboutTitle: 'About this data',
+	aboutBody: (d, n) => `Measured on ${d}: the public DNS records (DMARC, SPF, MX) of all ${n} municipalities. No mail was sent and no municipal server was contacted.`,
+	aboutMethod: 'How it is measured',
+	rank: (r, n) => `Rank ${r} of ${n}`,
+	vsNational: (p) => `Switzerland: ${p}`,
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
@@ -250,3 +320,34 @@ export const pct = (lang: Lang, x: number): string =>
 
 export const date = (lang: Lang, iso: string): string =>
 	new Intl.DateTimeFormat(locales[lang], { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(iso + 'T00:00:00Z'));
+
+const cantonNames: Record<string, [string, string, string, string]> = {
+	ZH: ['Zürich', 'Zurich', 'Zurigo', 'Zurich'],
+	BE: ['Bern', 'Berne', 'Berna', 'Bern'],
+	LU: ['Luzern', 'Lucerne', 'Lucerna', 'Lucerne'],
+	UR: ['Uri', 'Uri', 'Uri', 'Uri'],
+	SZ: ['Schwyz', 'Schwyz', 'Schwyz', 'Schwyz'],
+	OW: ['Obwalden', 'Obwald', 'Obvaldo', 'Obwalden'],
+	NW: ['Nidwalden', 'Nidwald', 'Nidvaldo', 'Nidwalden'],
+	GL: ['Glarus', 'Glaris', 'Glarona', 'Glarus'],
+	ZG: ['Zug', 'Zoug', 'Zugo', 'Zug'],
+	FR: ['Freiburg', 'Fribourg', 'Friburgo', 'Fribourg'],
+	SO: ['Solothurn', 'Soleure', 'Soletta', 'Solothurn'],
+	BS: ['Basel-Stadt', 'Bâle-Ville', 'Basilea Città', 'Basel-Stadt'],
+	BL: ['Basel-Landschaft', 'Bâle-Campagne', 'Basilea Campagna', 'Basel-Landschaft'],
+	SH: ['Schaffhausen', 'Schaffhouse', 'Sciaffusa', 'Schaffhausen'],
+	AR: ['Appenzell Ausserrhoden', 'Appenzell Rhodes-Extérieures', 'Appenzello Esterno', 'Appenzell Ausserrhoden'],
+	AI: ['Appenzell Innerrhoden', 'Appenzell Rhodes-Intérieures', 'Appenzello Interno', 'Appenzell Innerrhoden'],
+	SG: ['St. Gallen', 'Saint-Gall', 'San Gallo', 'St. Gallen'],
+	GR: ['Graubünden', 'Grisons', 'Grigioni', 'Graubünden'],
+	AG: ['Aargau', 'Argovie', 'Argovia', 'Aargau'],
+	TG: ['Thurgau', 'Thurgovie', 'Turgovia', 'Thurgau'],
+	TI: ['Tessin', 'Tessin', 'Ticino', 'Ticino'],
+	VD: ['Waadt', 'Vaud', 'Vaud', 'Vaud'],
+	VS: ['Wallis', 'Valais', 'Vallese', 'Valais'],
+	NE: ['Neuenburg', 'Neuchâtel', 'Neuchâtel', 'Neuchâtel'],
+	GE: ['Genf', 'Genève', 'Ginevra', 'Geneva'],
+	JU: ['Jura', 'Jura', 'Jura', 'Jura'],
+};
+
+export const cantonName = (lang: Lang, code: string): string => cantonNames[code]?.[langs.indexOf(lang)] ?? code;
