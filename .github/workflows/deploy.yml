@@ -1,5 +1,4 @@
 # Builds the static site and deploys it to GitHub Pages.
-# Runs only on what is already in this public repo: no scans, no secrets.
 # Actions are pinned to commit hashes; the tag is noted beside each.
 name: Deploy site
 

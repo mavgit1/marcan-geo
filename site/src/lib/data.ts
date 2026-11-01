@@ -1,4 +1,4 @@
-// The public data file, written by `marcan-geo export` in the internal repo.
+// The published data file, written by `marcan-geo export`.
 // Its level decides what exists: level 0 has no `municipalities` at all.
 
 import raw from './data/public.json';

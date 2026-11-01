@@ -1,11 +1,14 @@
 //! Raw answers -> one status per municipality. Pure: no network, no clock.
 //!
-//! Status rules (CLASSIFIER_VERSION 1):
+//! Status rules (CLASSIFIER_VERSION 2):
 //! - blocked:    p=reject,     pct absent or 100, not t=y
 //! - filtered:   p=quarantine, pct absent or 100, not t=y
 //! - monitoring: p=none, or any policy with pct<100 or t=y (pct is gone in DMARCbis)
 //! - none:       no DMARC record, or an invalid one (receivers ignore it)
-//! - unknown:    no website, mail domain has no MX / null MX / does not exist, DNS error
+//! - unknown:    no data: no website, the domain does not exist, or a DNS error
+//!
+//! A domain without MX is rated by its DMARC record like any other: a domain
+//! that sends no mail can still be spoofed and should publish p=reject.
 //!
 //! Without a record at `_dmarc.<domain>`, the organizational domain's record
 //! applies, with its `sp=` if set (RFC 7489 section 6.6.3).
@@ -21,7 +24,7 @@ use crate::registry::{self, Municipality};
 use crate::scan::{RESOLVERS, RawAnswer};
 use crate::domain;
 
-pub const CLASSIFIER_VERSION: u32 = 1;
+pub const CLASSIFIER_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -347,13 +350,9 @@ pub fn classify(m: &Municipality, mail_domain: &str, source: &str, ans: &Answers
     row.status = status;
     row.status_reason = reason;
 
-    // Without a working mail domain we do not know which domain they send from.
-    if row.mx != "present" && row.status != Status::Unknown {
-        row.status_reason = if row.status_reason.is_empty() {
-            format!("mx_{}", row.mx)
-        } else {
-            format!("mx_{},{}", row.mx, row.status_reason)
-        };
+    // A domain that does not exist or does not answer gives no data.
+    if matches!(row.mx.as_str(), "nxdomain" | "error") {
+        row.status_reason = format!("mx_{}", row.mx);
         row.status = Status::Unknown;
     }
     row
@@ -473,12 +472,26 @@ mod tests {
     }
 
     #[test]
-    fn no_mx_is_unknown() {
+    fn no_mx_still_rated_by_dmarc() {
         let e: Vec<_> = [both("a.ch", "MX", &[]), both("_dmarc.a.ch", "TXT", &["v=DMARC1; p=reject"])].concat();
         let r = classify(&muni("a.ch"), "a.ch", "web", &ans(&e), "t");
-        assert_eq!((r.status, r.mx.as_str()), (Status::Unknown, "none"));
+        assert_eq!((r.status, r.mx.as_str()), (Status::Blocked, "none"));
         let e: Vec<_> = [both("a.ch", "MX", &["0 ."]), both("_dmarc.a.ch", "TXT", &[])].concat();
-        assert_eq!(classify(&muni("a.ch"), "a.ch", "web", &ans(&e), "t").mx, "null");
+        let r = classify(&muni("a.ch"), "a.ch", "web", &ans(&e), "t");
+        assert_eq!((r.status, r.mx.as_str()), (Status::None, "null"));
+    }
+
+    #[test]
+    fn missing_domain_is_unknown() {
+        let mut a = ans(&[]);
+        for r in ["google", "quad9"] {
+            a.0.insert(
+                (r.into(), "gone.ch".into(), "MX".into()),
+                RawAnswer { ts: chrono::DateTime::UNIX_EPOCH, resolver: r.into(), qname: "gone.ch".into(), qtype: "MX".into(), status: "nxdomain".into(), detail: None, ttl: None, records: vec![] },
+            );
+        }
+        let r = classify(&muni("gone.ch"), "gone.ch", "web", &a, "t");
+        assert_eq!((r.status, r.status_reason.as_str()), (Status::Unknown, "mx_nxdomain"));
     }
 
     #[test]

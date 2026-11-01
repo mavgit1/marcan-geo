@@ -1,15 +1,18 @@
 <script lang="ts">
-	import { STATUSES, type Counts } from './data';
+	// Shares use municipalities with data as the base, like the headline;
+	// "no data" is shown as a count beside it, outside the 100%.
+	import { STATUSES, known, type Counts } from './data';
 	import { t, pct, type Lang } from './i18n';
 
 	let { counts, lang, legend = true }: { counts: Counts; lang: Lang; legend?: boolean } = $props();
-	const total = $derived(counts.reduce((a, b) => a + b, 0));
+	const base = $derived(known(counts));
+	const KNOWN = STATUSES.slice(0, 4);
 </script>
 
 <div class="bar" role="img" aria-label={STATUSES.map((s, i) => `${t(lang).status[s]}: ${counts[i]}`).join(', ')}>
-	{#each STATUSES as s, i}
+	{#each KNOWN as s, i}
 		{#if counts[i] > 0}
-			<svg class="seg" viewBox="0 0 10 10" preserveAspectRatio="none" width="{(counts[i] / total) * 100}%">
+			<svg class="seg" viewBox="0 0 10 10" preserveAspectRatio="none" width="{(counts[i] / base) * 100}%">
 				<rect width="10" height="10" class={s} />
 			</svg>
 		{/if}
@@ -17,9 +20,12 @@
 </div>
 {#if legend}
 	<ul class="legend">
-		{#each STATUSES as s, i}
-			<li><span class="swatch {s}"></span>{t(lang).status[s]} <span class="muted">{counts[i]} · {pct(lang, total ? counts[i] / total : 0)}</span></li>
+		{#each KNOWN as s, i}
+			<li><span class="swatch {s}"></span>{t(lang).status[s]} <span class="muted">{counts[i]} · {pct(lang, base ? counts[i] / base : 0)}</span></li>
 		{/each}
+		{#if counts[4] > 0}
+			<li class="muted"><span class="swatch unknown"></span>{t(lang).status.unknown}: {counts[4]}</li>
+		{/if}
 	</ul>
 {/if}
 

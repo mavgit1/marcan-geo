@@ -1,72 +1,61 @@
 # marcan-geo
 
-> ⚠ **PUBLIC REPOSITORY.** Everything committed here is mirrored to
-> https://github.com/mavgit1/marcan-geo and published. Never commit
-> unreleased data here; that belongs in `marcan-geo-internal`.
+How well do Swiss municipalities protect their sender address against
+spoofing? This project measures the DMARC and SPF records of all 2,110 Swiss
+municipalities and publishes the results as a map.
 
-Map of email authentication (DMARC/SPF) for Swiss municipalities.
+Site: https://mavgit1.github.io/marcan-geo/
 
-## Layout
+## How it works
 
-| Path | What |
-|---|---|
-| `scanner/` | Rust CLI: registry, DNS scan, classification, public export |
-| `site/` | SvelteKit static site, deployed to GitHub Pages |
-| `site/scripts/build-geo.mjs` | Builds map geometry from swisstopo boundaries (once per edition) |
-| `site/src/lib/data/public.json` | The reviewed public export, the only data file in this repo |
-| `.githooks/pre-commit` | Blocks data files, wrong identity and local paths |
-
-After cloning, enable the guard:
-
-```
-git config core.hooksPath .githooks
-```
-
-## Pipeline
-
-Runs locally, in a checkout of `marcan-geo-internal` next to this one. Never in
-GitHub Actions: logs and artifacts of a public repo are public.
-
-```
-cd ../marcan-geo-internal
-S=../marcan-geo/scanner/target/release/marcan-geo
-$S registry --out registry/2026-11-01.csv
-$S scan     --registry registry/2026-11-01.csv --overrides overrides.csv --out scans/2026-11-01
-$S classify --scan scans/2026-11-01 --registry registry/2026-11-01.csv --overrides overrides.csv
-$S export   --scans scans --config export.toml --out ../marcan-geo/site/src/lib/data/public.json
-```
-
-`export.toml` sets the level of detail: `0` canton totals, `1` adds
-per-municipality status, policy, SPF and history.
-
-The scan only queries DNS through public resolvers (Google Public DNS, Quad9),
-rate limited. It sends no mail and never connects to municipal servers.
+1. **Registry.** The list of municipalities comes from the Federal Statistical
+   Office's official commune register, their websites from Wikidata. The mail
+   domain is derived from the website's domain and corrected by hand where
+   there is evidence that it differs.
+2. **Scan.** For each domain, MX, SPF and DMARC records are queried through
+   Google Public DNS and Quad9 at a limited rate. No mail is sent and no
+   connection is made to municipal servers.
+3. **Classification.** Each municipality gets one status from the raw answers.
+4. **Export and site.** Totals per canton and over time go into a static site.
 
 ## Classification
 
 | Status | Rule |
 |---|---|
-| blocked | `p=reject`, no `pct` below 100, no `t=y` |
-| filtered | `p=quarantine`, no `pct` below 100, no `t=y` |
-| monitoring | `p=none`, or any policy with `pct` below 100 or `t=y` |
-| none | no DMARC record, or an invalid one |
-| unknown | no website, the mail domain receives no mail, or a DNS error |
+| Spoofing blocked | `p=reject`, no `pct` below 100, no `t=y` |
+| Spoofing filtered | `p=quarantine`, no `pct` below 100, no `t=y` |
+| Monitoring only | `p=none`, or any policy with `pct` below 100 or `t=y` |
+| No DMARC | no DMARC record, or an invalid one |
+| No data | no known website or domain, or a DNS error |
 
-Without a record at `_dmarc.<domain>`, the organizational domain's record
-applies, with its `sp=` if set.
+A domain that receives no mail still needs DMARC: anyone can send mail in its
+name, so it should publish `p=reject`. Without a record at `_dmarc.<domain>`,
+the organizational domain's record applies, with its `sp=` if set.
 
-## Site
+Not measured: DKIM (selectors are not public), actual delivery, population.
+
+## Layout
+
+| Path | What |
+|---|---|
+| `scanner/` | Rust command-line tool: registry, scan, classify, export |
+| `site/` | SvelteKit static site (DE/FR/IT/EN) |
+| `site/scripts/build-geo.mjs` | Map geometry from swisstopo boundaries |
+| `site/src/lib/data/public.json` | Published data |
 
 ```
-cd site
-pnpm install
-pnpm dev
+cd scanner && cargo build --release && ./target/release/marcan-geo --help
+cd site && pnpm install && pnpm dev
 ```
 
-Static output, no external requests, a strict Content Security Policy, no
-cookies and no analytics. A push to `main` builds and deploys it.
+The site is fully static: no external requests, a strict Content Security
+Policy, no cookies, no analytics.
 
-## Data sources
+## Corrections
+
+Is your municipality's mail domain wrong? Please open an issue.
+
+## Sources
 
 - Municipalities: Federal Statistical Office (BFS), official commune register
 - Websites: Wikidata

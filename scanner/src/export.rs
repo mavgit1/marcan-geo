@@ -1,5 +1,5 @@
-//! Public export: the only way data reaches the public repo. `export.toml`
-//! sets the level of detail; everything above that level is left out.
+//! Export for the site. The config's `level` sets the level of detail;
+//! everything above that level is left out.
 
 use std::collections::BTreeMap;
 use std::path::Path;
