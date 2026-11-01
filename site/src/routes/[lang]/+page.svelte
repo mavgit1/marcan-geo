@@ -68,14 +68,15 @@
 				}))
 	);
 
-	const hovered = $derived.by(() => {
-		if (!hover) return null;
+	// One caption line under the map, so hovering never moves the layout.
+	const caption = $derived.by(() => {
+		if (!hover) return '';
 		if (data.muniPaths) {
 			const m = muniByBfs.get(hover);
-			return m ? { title: `${m.name} (${m.canton})`, sub: `${tr.status[m.status]} · ${m.domains.map((d) => d.domain).join(', ')}` } : null;
+			return m ? `${m.name} (${m.canton}) · ${tr.status[m.status]} · ${m.domains.map((d) => d.domain).join(', ')}` : '';
 		}
 		const c = cantonByNr.get(hover);
-		return c ? { title: cantonName(lang, c.code), counts: latest(c.series) } : null;
+		return c ? `${cantonName(lang, c.code)} · ${pct(lang, enforcing(latest(c.series)))} ${tr.enforcing.toLowerCase()}` : '';
 	});
 </script>
 
@@ -84,7 +85,7 @@
 	<meta name="description" content={tr.tagline} />
 </svelte:head>
 
-<header class="intro">
+<header class="intro text">
 	<p class="kicker">{tr.kicker(date(lang, scanDate))}</p>
 	<h1>{tr.title(share)}</h1>
 	<p class="dek">
@@ -96,180 +97,131 @@
 			pct(lang, now[2] / known(now))
 		)}
 	</p>
+	<p class="byline">
+		{tr.measured(date(lang, scanDate))} · <a href="{base}/{lang}/method/">{tr.aboutMethod}</a> · {tr.byAuthor} <a href={MARCAN} rel="noopener">Marcan</a>
+	</p>
 </header>
 
-<section class="national">
+<section class="national text">
 	<StatusBar counts={now} {lang} />
-	<p class="small muted">{tr.headlineSub(known(now), total)}. {tr.unknownNote(now[4])}</p>
+	<p class="source">{tr.headlineSub(known(now), total)}.</p>
 </section>
 
-<section class="map-grid">
-	<div>
-		<p class="kicker">{data.muniPaths ? tr.mapTitle : tr.mapLocator}</p>
-		<div class="map-box">
-			<Map {shapes} {labels} label={tr.mapTitle} selected={hover} onhover={(id) => (hover = id)} />
-		</div>
-		<div class="under-map">
-			{#if data.muniPaths}
-				<ul class="status-key">
-					{#each STATUSES as s}
-						<li><span class="swatch {s}"></span>{tr.status[s]}</li>
-					{/each}
-				</ul>
-			{:else}
-				<ShareLegend {lang} title={tr.legendShare} average={share} averageLabel={tr.average(pct(lang, share))} />
-			{/if}
-			{#if hovered}
-				<div class="card hover-card">
-					<strong>{hovered.title}</strong>
-					{#if 'counts' in hovered && hovered.counts}
-						<p class="muted small">{pct(lang, enforcing(hovered.counts))} {tr.enforcing.toLowerCase()}</p>
-						<StatusBar counts={hovered.counts} {lang} legend={false} />
-					{:else if 'sub' in hovered}
-						<p class="small">{hovered.sub}</p>
-					{/if}
-				</div>
-			{/if}
-		</div>
+<section>
+	<h2 class="chart-title">{tr.mapTitle}</h2>
+	<p class="chart-sub">{data.muniPaths ? tr.mapHint : tr.legendShare}</p>
+	<div class="map-box">
+		<Map {shapes} {labels} label={tr.mapTitle} selected={hover} onhover={(id) => (hover = id)} />
 	</div>
-	<aside class="card about">
-		<h2>{tr.aboutTitle}</h2>
-		<p class="small">{tr.aboutBody(date(lang, scanDate), total)}</p>
-		<p class="small">{tr.firstStep(now[2], pct(lang, now[2] / known(now)))} <a href="{base}/{lang}/guide/">{tr.howToImprove}</a></p>
-		{#if !data.muniPaths}
-			<p class="small muted">{tr.cantonDetailLater}</p>
-		{/if}
-		<p class="small">
-			<a href="{base}/{lang}/method/">{tr.aboutMethod}</a> ·
-			<a href={ISSUES} rel="noopener">{tr.footerCorrections}</a>
-		</p>
-		<p class="small muted">{tr.footerBuilt} <a href={MARCAN} rel="noopener">Marcan</a></p>
-	</aside>
+	<p class="caption" aria-live="polite">{caption}</p>
+	{#if !data.muniPaths}
+		<ShareLegend {lang} title={tr.legendShare} average={share} averageLabel={tr.average(pct(lang, share))} />
+	{/if}
+	<p class="source">{tr.source(date(lang, scanDate))}</p>
 </section>
 
 <section>
-	<p class="kicker">{tr.byCanton}</p>
-	<h2>{tr.rankTitle}</h2>
-	<p class="small muted sub">{tr.rankSub}</p>
+	<h2 class="chart-title">{tr.rankTitle}</h2>
+	<p class="chart-sub">{tr.rankSub}</p>
 	<RankedBars cantons={pub.cantons} national={now} {lang} />
+	<p class="source">{tr.source(date(lang, scanDate))} * {tr.smallN}</p>
+	<details class="table-view">
+		<summary>{tr.tableView}</summary>
+		<div class="table-scroll">
+			<table>
+				<thead>
+					<tr>
+						<th>{tr.canton}</th>
+						<th class="num">{tr.enforcing}</th>
+						<th class="num">{tr.municipalities}</th>
+						{#each STATUSES as s}
+							<th class="num"><span class="swatch {s}"></span><span class="sr-only">{tr.status[s]}</span></th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each sorted as c}
+						{@const n = latest(c.series)}
+						<tr>
+							<td><a href="{base}/{lang}/kanton/{c.code.toLowerCase()}/">{cantonName(lang, c.code)}</a></td>
+							<td class="num">{pct(lang, enforcing(n))}</td>
+							<td class="num">{n.reduce((a, b) => a + b, 0)}</td>
+							{#each n as v}
+								<td class="num">{v}</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</details>
 </section>
 
-
 <section>
-	<p class="kicker">{tr.trendTitle}</p>
-	<h2>{tr.enforcing}</h2>
+	<h2 class="chart-title">{tr.trendTitle}</h2>
+	<p class="chart-sub">{tr.legendShare}</p>
 	<Trend series={pub.national} scans={pub.scans} {lang} />
 </section>
 
-<details class="table-view">
-	<summary>{tr.tableView}</summary>
-	<div class="table-scroll">
-		<table>
-			<thead>
-				<tr>
-					<th>{tr.canton}</th>
-					<th class="num">{tr.enforcing}</th>
-					<th class="num">{tr.municipalities}</th>
-					{#each STATUSES as s}
-						<th class="num"><span class="swatch {s}"></span><span class="sr-only">{tr.status[s]}</span></th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each sorted as c}
-					{@const n = latest(c.series)}
-					<tr>
-						<td><a href="{base}/{lang}/kanton/{c.code.toLowerCase()}/">{cantonName(lang, c.code)}</a></td>
-						<td class="num"><strong>{pct(lang, enforcing(n))}</strong></td>
-						<td class="num">{n.reduce((a, b) => a + b, 0)}</td>
-						{#each n as v}
-							<td class="num">{v}</td>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
-	<p class="small muted">{tr.scanOf(date(lang, scanDate))}</p>
-</details>
+<section class="endnote text">
+	<h2 class="chart-title">{tr.aboutMethod}</h2>
+	<p>{tr.aboutBody(date(lang, scanDate), total)} {tr.firstStep(now[2], pct(lang, now[2] / known(now)))} <a href="{base}/{lang}/guide/">{tr.howToImprove}</a></p>
+	<p><a href="{base}/{lang}/method/">{tr.nav.method}</a> · <a href={ISSUES} rel="noopener">{tr.footerCorrections}</a></p>
+	{#if !data.muniPaths}
+		<p class="muted">{tr.cantonDetailLater}</p>
+	{/if}
+</section>
 
 <style>
-	.intro {
-		margin-bottom: 1.2rem;
-	}
 	.intro h1 {
-		margin: 0.35rem 0 0.7rem;
+		margin: 0.35rem 0 0.8rem;
 	}
 	.dek {
-		margin: 0;
-	}
-	.national {
-		max-width: 46rem;
-	}
-	section {
-		margin: 2.4rem 0 1rem;
-	}
-	section h2 {
-		margin: 0.25rem 0 0.3rem;
-		font-family: var(--serif);
-		font-size: 1.45rem;
-	}
-	.sub {
 		margin: 0 0 0.9rem;
 	}
-	.kicker {
+	.byline {
+		font-size: 0.875rem;
+		color: var(--muted);
 		margin: 0;
 	}
-	.map-grid {
-		display: grid;
-		grid-template-columns: minmax(0, 3fr) minmax(14rem, 1.2fr);
-		gap: 2rem;
-		align-items: start;
+	.byline a {
+		color: var(--muted);
 	}
-	@media (max-width: 760px) {
-		.map-grid {
-			grid-template-columns: minmax(0, 1fr);
-		}
+	section {
+		margin: 3.5rem 0 0;
+	}
+	.national {
+		margin-top: 2rem;
 	}
 	.map-box {
-		margin-top: 0.5rem;
+		max-width: 60rem;
 	}
-	.under-map {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem 2rem;
-		align-items: flex-start;
-		margin-top: 0.6rem;
-	}
-	.hover-card {
-		min-width: 12rem;
-		flex: 1;
-	}
-	.hover-card p {
-		margin: 0.2rem 0 0.4rem;
-	}
-	.status-key {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.2rem 1rem;
-		font-size: 0.88rem;
-	}
-	.about h2 {
-		font-size: 1.1rem;
-		margin-top: 0;
-	}
-	.small {
-		font-size: 0.88rem;
+	.caption {
+		min-height: 1.5em;
+		margin: 0.4rem 0 0;
+		font-size: 0.94rem;
+		max-width: none;
 	}
 	.table-view {
-		margin: 2rem 0 1rem;
+		margin-top: 1.2rem;
 	}
 	.table-view summary {
 		cursor: pointer;
-		font-weight: 600;
-		color: var(--accent);
+		font-size: 0.94rem;
+		color: var(--muted);
+		text-decoration: underline;
+		text-decoration-color: var(--line);
+		list-style: none;
+	}
+	.table-view summary::-webkit-details-marker {
+		display: none;
+	}
+	.endnote {
+		border-top: 1px solid var(--line);
+		padding-top: 1.2rem;
+		font-size: 0.94rem;
+	}
+	.endnote p {
+		margin: 0.5rem 0;
 	}
 </style>

@@ -30,7 +30,8 @@ const mapshaper = join(here, '..', 'node_modules', '.bin', 'mapshaper');
 execFileSync(mapshaper, [
 	'-i', shp, 'name=all',
 	'-filter', 'ICC == "CH"',
-	'-each', 'kind = OBJEKTART == "Kantonsgebiet" ? "lake" : OBJEKTART == "Kommunanz" ? "shared" : "municipality"',
+	// Cantonal areas outside any municipality are lakes, except the state forest Galm (FR).
+	'-each', 'kind = OBJEKTART == "Kantonsgebiet" ? (NAME.indexOf("Staatswald") === 0 ? "shared" : "lake") : OBJEKTART == "Kommunanz" ? "shared" : "municipality"',
 	'-filter-fields', 'BFS_NUMMER,KANTONSNUM,kind',
 	'-simplify', 'interval=200', 'keep-shapes',
 	'-filter', 'kind != "lake"', '+', 'name=land',
@@ -80,8 +81,11 @@ for (const [nr, geoms] of Object.entries(cantonGeoms)) {
 	labels[nr] = [Math.round(x), Math.round(y)];
 }
 
+// Borders between cantons, including those across lakes (lake areas belong to
+// cantons too), plus the national border. Shorelines inside a canton are not
+// borders.
 const cantonBorders = path(
-	mesh(topo, { type: 'GeometryCollection', geometries: land }, (a, b) => a.properties.KANTONSNUM !== b.properties.KANTONSNUM || a === b)
+	mesh(topo, layer, (a, b) => a.properties.KANTONSNUM !== b.properties.KANTONSNUM || a === b)
 );
 
 mkdirSync(out, { recursive: true });

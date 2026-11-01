@@ -94,8 +94,9 @@
 	}
 	.borders {
 		fill: none;
-		stroke: var(--bg);
-		stroke-width: 1.4px;
+		stroke: var(--fg);
+		stroke-opacity: 0.7;
+		stroke-width: 1px;
 		vector-effect: non-scaling-stroke;
 		stroke-linejoin: round;
 		pointer-events: none;

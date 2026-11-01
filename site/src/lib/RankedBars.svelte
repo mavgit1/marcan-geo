@@ -29,12 +29,16 @@
 	);
 </script>
 
-<ul class="key">
-	{#each KNOWN as s}
-		<li><span class="swatch {s}"></span>{tr.status[s]}</li>
-	{/each}
-</ul>
 <ol class="ranked">
+	<li class="head" aria-hidden="true">
+		<span></span>
+		<span class="n">n</span>
+		<svg class="head-svg">
+			<text x="{avg * 100}%" y="12" text-anchor="middle" class="avg-text">{tr.average(pct(lang, avg))}</text>
+			<line x1="{avg * 100}%" x2="{avg * 100}%" y1="15" y2="20" class="avg" />
+		</svg>
+		<span></span>
+	</li>
 	{#each rows as r}
 		<li>
 			<a href="{base}/{lang}/kanton/{r.c.code.toLowerCase()}/">
@@ -44,56 +48,52 @@
 					{#each r.segs as g}
 						<rect x={g.x} width={g.w} height="10" class={g.s}><title>{tr.status[g.s]}: {g.n} ({pct(lang, g.w / 100)})</title></rect>
 					{/each}
-					<line x1={avg * 100} x2={avg * 100} y1="-1" y2="11" class="avg" />
+					<line x1={avg * 100} x2={avg * 100} y1="-2" y2="12" class="avg" />
 				</svg>
 				<span class="share">{pct(lang, r.share)}</span>
 			</a>
 		</li>
 	{/each}
 </ol>
-<p class="foot muted">
-	<span class="avg-key" aria-hidden="true"></span>{tr.average(pct(lang, avg))} · <span aria-hidden="true">*</span> {tr.smallN}
-</p>
 
 <style>
-	.key {
-		list-style: none;
-		padding: 0;
-		margin: 0 0 0.6rem;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.2rem 1.1rem;
-		font-size: 0.88rem;
-	}
 	.ranked {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 		max-width: none;
+		position: relative;
 	}
 	.ranked li {
 		max-width: none;
 	}
-	.ranked a {
+	.ranked a,
+	.head {
 		display: grid;
-		grid-template-columns: minmax(6rem, 11rem) 2.4rem minmax(0, 1fr) 2.8rem;
+		grid-template-columns: minmax(6rem, 12rem) 2.2rem minmax(0, 1fr) 2.8rem;
 		align-items: center;
 		gap: 0.6rem;
-		padding: 0.18rem 0.25rem;
-		border-radius: 6px;
+		padding: 0.2rem 0;
 		color: var(--fg);
 		text-decoration: none;
 		font-variant-numeric: tabular-nums;
 	}
-	.ranked a:hover,
-	.ranked a:focus-visible {
-		background: var(--muted-bg);
+	.head {
+		padding: 0;
+		font-size: 0.8125rem;
+		color: var(--muted);
+	}
+	.ranked a:hover .long,
+	.ranked a:hover .short,
+	.ranked a:focus-visible .long,
+	.ranked a:focus-visible .short {
+		text-decoration: underline;
 	}
 	.name {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		font-size: 0.95rem;
+		font-size: 0.94rem;
 	}
 	.short {
 		display: none;
@@ -104,21 +104,28 @@
 	}
 	.n {
 		text-align: right;
-		font-size: 0.85rem;
+		font-size: 0.8125rem;
 	}
 	.share {
 		text-align: right;
-		font-weight: 650;
+		font-size: 0.94rem;
 	}
 	svg {
 		width: 100%;
-		height: 1rem;
+		height: 0.875rem;
 		display: block;
 		overflow: visible;
 	}
+	.head-svg {
+		height: 1.25rem;
+	}
+	.avg-text {
+		font-size: 12px;
+		fill: var(--muted);
+	}
 	rect {
 		stroke: var(--bg);
-		stroke-width: 1.5px;
+		stroke-width: 1px;
 		vector-effect: non-scaling-stroke;
 	}
 	.blocked {
@@ -135,21 +142,9 @@
 	}
 	.avg {
 		stroke: var(--fg);
-		stroke-width: 1.5px;
-		stroke-dasharray: 3 2;
+		stroke-opacity: 0.6;
+		stroke-width: 1px;
 		vector-effect: non-scaling-stroke;
-	}
-	.foot {
-		font-size: 0.85rem;
-		margin-top: 0.6rem;
-	}
-	.avg-key {
-		display: inline-block;
-		width: 0;
-		height: 0.9em;
-		border-left: 1.5px dashed var(--fg);
-		margin-right: 0.45em;
-		vertical-align: -0.1em;
 	}
 	@media (max-width: 520px) {
 		.long {
@@ -158,7 +153,8 @@
 		.short {
 			display: inline;
 		}
-		.ranked a {
+		.ranked a,
+		.head {
 			grid-template-columns: 2.6rem 2rem minmax(0, 1fr) 2.6rem;
 			gap: 0.4rem;
 		}

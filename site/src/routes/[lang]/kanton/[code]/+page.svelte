@@ -77,7 +77,7 @@
 					<tr>
 						<td><a href="{base}/{lang}/gemeinde/{m.bfs}/">{m.name}</a></td>
 						<td><span class="swatch {m.status}"></span>{tr.status[m.status]}</td>
-						<td><code>{m.domains[0]?.domain ?? ''}</code>{#if m.domains.length > 1} <span class="muted">+{m.domains.length - 1}</span>{/if}</td>
+						<td class="muted"><code>{m.domains[0]?.domain ?? ''}</code>{#if m.domains.length > 1} +{m.domains.length - 1}{/if}</td>
 					</tr>
 				{/each}
 			</tbody>
@@ -100,17 +100,18 @@
 		}
 	}
 	.compare {
-		font-weight: 600;
+		font-weight: 400;
 		margin: 0.4rem 0 1rem;
 	}
 	.small {
 		font-size: 0.88rem;
 	}
 	.big {
-		font-size: 3.5rem;
-		font-weight: 750;
+		font-family: var(--serif);
+		font-size: 3.2rem;
+		font-weight: 700;
 		line-height: 1;
 		margin: 0;
-		color: var(--accent);
+		color: var(--fg);
 	}
 </style>

@@ -72,6 +72,15 @@ type Dict = {
 	otherDomain: string;
 	counts: string;
 	weakestNote: string;
+	measured: (date: string) => string;
+	byAuthor: string;
+	mapHint: string;
+	source: (date: string) => string;
+	sendsFrom: (name: string, domain: string) => string;
+	explain: Record<StatusKey, string>;
+	cantonContext: (canton: string, p: string) => string;
+	techDetails: string;
+	otherDomains: string;
 };
 
 const de: Dict = {
@@ -137,6 +146,21 @@ const de: Dict = {
 	otherDomain: 'Weitere Domain',
 	counts: 'zählt',
 	weakestNote: 'Es zählt die am schwächsten geschützte Domain, denn mit jeder lassen sich Mails im Namen der Gemeinde fälschen.',
+	measured: (d) => `Gemessen am ${d} aus öffentlichen DNS-Einträgen`,
+	byAuthor: 'Vom Autor von',
+	mapHint: 'Fahren Sie über eine Gemeinde oder tippen Sie darauf.',
+	source: (d) => `Quelle: eigene Messung der DNS-Einträge, ${d}.`,
+	sendsFrom: (n, d) => `${n} verschickt Mails von ${d}.`,
+	explain: {
+		blocked: 'Gefälschte Mails mit diesem Absender werden abgewiesen.',
+		filtered: 'Gefälschte Mails mit diesem Absender landen im Spam.',
+		monitoring: 'Gefälschte Mails mit diesem Absender werden nur gemeldet, nicht aufgehalten.',
+		none: 'Gefälschte Mails mit diesem Absender werden nicht aufgehalten.',
+		unknown: 'Für diese Domain liegen keine auswertbaren Daten vor.'
+	},
+	cantonContext: (c, p) => `Im Kanton ${c} blockieren oder filtern ${p} der Gemeinden gefälschte Mails.`,
+	techDetails: 'Technische Details',
+	otherDomains: 'Weitere Domains der Gemeinde',
 };
 
 const fr: Dict = {
@@ -202,6 +226,21 @@ const fr: Dict = {
 	otherDomain: 'Autre domaine',
 	counts: 'compte',
 	weakestNote: 'C’est le domaine le moins protégé qui compte, car chacun permet d’envoyer de faux e-mails au nom de la commune.',
+	measured: (d) => `Mesuré le ${d} à partir d’enregistrements DNS publics`,
+	byAuthor: 'Par l’auteur de',
+	mapHint: 'Survolez ou touchez une commune.',
+	source: (d) => `Source : mesure propre des enregistrements DNS, ${d}.`,
+	sendsFrom: (n, d) => `${n} envoie ses e-mails depuis ${d}.`,
+	explain: {
+		blocked: 'Les e-mails usurpant cet expéditeur sont rejetés.',
+		filtered: 'Les e-mails usurpant cet expéditeur finissent dans les spams.',
+		monitoring: 'Les e-mails usurpant cet expéditeur sont seulement signalés, pas arrêtés.',
+		none: 'Les e-mails usurpant cet expéditeur ne sont pas arrêtés.',
+		unknown: 'Aucune donnée exploitable pour ce domaine.'
+	},
+	cantonContext: (c, p) => `Canton ${c} : ${p} des communes bloquent ou filtrent les e-mails usurpés.`,
+	techDetails: 'Détails techniques',
+	otherDomains: 'Autres domaines de la commune',
 };
 
 const it: Dict = {
@@ -267,6 +306,21 @@ const it: Dict = {
 	otherDomain: 'Altro dominio',
 	counts: 'conta',
 	weakestNote: 'Conta il dominio meno protetto, perché con ognuno si possono falsificare e-mail a nome del comune.',
+	measured: (d) => `Misurato il ${d} da record DNS pubblici`,
+	byAuthor: 'Dall’autore di',
+	mapHint: 'Passate sopra o toccate un comune.',
+	source: (d) => `Fonte: misurazione propria dei record DNS, ${d}.`,
+	sendsFrom: (n, d) => `${n} invia e-mail da ${d}.`,
+	explain: {
+		blocked: 'Le e-mail che falsificano questo mittente vengono respinte.',
+		filtered: 'Le e-mail che falsificano questo mittente finiscono nello spam.',
+		monitoring: 'Le e-mail che falsificano questo mittente vengono solo segnalate, non fermate.',
+		none: 'Le e-mail che falsificano questo mittente non vengono fermate.',
+		unknown: 'Nessun dato utilizzabile per questo dominio.'
+	},
+	cantonContext: (c, p) => `Canton ${c}: il ${p} dei comuni blocca o filtra le e-mail falsificate.`,
+	techDetails: 'Dettagli tecnici',
+	otherDomains: 'Altri domini del comune',
 };
 
 const en: Dict = {
@@ -332,6 +386,21 @@ const en: Dict = {
 	otherDomain: 'Other domain',
 	counts: 'counts',
 	weakestNote: 'The least protected domain counts, since each one can be used to fake mail in the municipality’s name.',
+	measured: (d) => `Measured on ${d} from public DNS records`,
+	byAuthor: 'By the author of',
+	mapHint: 'Hover over or tap a municipality.',
+	source: (d) => `Source: own measurement of DNS records, ${d}.`,
+	sendsFrom: (n, d) => `${n} sends mail from ${d}.`,
+	explain: {
+		blocked: 'Mail faking this sender is rejected.',
+		filtered: 'Mail faking this sender ends up in spam.',
+		monitoring: 'Mail faking this sender is only reported, not stopped.',
+		none: 'Mail faking this sender is not stopped.',
+		unknown: 'No usable data for this domain.'
+	},
+	cantonContext: (c, p) => `In ${c}, ${p} of municipalities block or filter spoofed mail.`,
+	techDetails: 'Technical details',
+	otherDomains: 'Other domains of the municipality',
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
