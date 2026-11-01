@@ -1,0 +1,42 @@
+#!/bin/sh
+# Public repo guard: everything committed here is mirrored to GitHub.
+# Enable once per clone:  git config core.hooksPath .githooks
+#
+# Blocks unreleased data files and personal identifiers. The only data file
+# allowed is the reviewed export, site/src/lib/data/public.json.
+
+fail=0
+files=$(git diff --cached --name-only --diff-filter=ACMR)
+
+for f in $files; do
+	case "$f" in
+		site/src/lib/data/public.json) ;;
+		*.csv|*.jsonl|*.tsv|*.xlsx|*.parquet|*.sqlite|*.db|.env|.env.*|*/scans/*|scans/*|*/registry/*|registry/*|overrides.*|packages/*)
+			echo "pre-commit: '$f' looks like data or secrets; it belongs in marcan-geo-internal." >&2
+			fail=1 ;;
+	esac
+done
+
+# The public export at level 0 must not contain municipalities.
+if echo "$files" | grep -qx 'site/src/lib/data/public.json'; then
+	if git show :site/src/lib/data/public.json | grep -q '"municipalities"' && \
+	   ! git show :site/src/lib/data/public.json | grep -q '"level":1'; then
+		echo "pre-commit: public.json has municipalities but is not level 1." >&2
+		fail=1
+	fi
+fi
+
+# Identity: commits must use the pseudonymous identity.
+name=$(git config user.name)
+case "$name" in
+	mavgit1) ;;
+	*) echo "pre-commit: git user.name is '$name'; this public repo commits as 'mavgit1'." >&2; fail=1 ;;
+esac
+
+# Local paths reveal the account name.
+if git diff --cached -U0 | grep -E '^\+' | grep -qE '/Users/[A-Za-z]|/home/[A-Za-z]'; then
+	echo "pre-commit: staged changes contain a local home path." >&2
+	fail=1
+fi
+
+exit $fail
