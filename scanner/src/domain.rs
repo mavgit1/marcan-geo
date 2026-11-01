@@ -8,6 +8,10 @@ const CANTONAL: [&str; 26] = [
     "ti.ch", "vd.ch", "vs.ch", "ne.ch", "ge.ch", "ju.ch",
 ];
 
+/// Cantonal portals that list municipalities as pages, not as subdomains
+/// of their own: any host under one gives no municipal domain.
+const CANTONAL_PORTALS: [&str; 1] = ["baselland.ch"];
+
 /// Lower-cased host of a URL, without port, trailing dot or `www.`.
 pub fn host_of(url: &str) -> Option<String> {
     let rest = url.split_once("://").map_or(url, |(_, r)| r);
@@ -26,6 +30,9 @@ pub fn host_of(url: &str) -> Option<String> {
 pub fn web_domain(url: &str) -> Option<String> {
     let host = host_of(url)?;
     let registrable = organizational_domain(&host)?;
+    if CANTONAL_PORTALS.contains(&registrable.as_str()) {
+        return None;
+    }
     if CANTONAL.contains(&registrable.as_str()) {
         if host == registrable {
             return None;
@@ -57,6 +64,7 @@ mod tests {
     fn cantonal_subdomain_kept() {
         assert_eq!(web_domain("https://www.boudry.ne.ch").as_deref(), Some("boudry.ne.ch"));
         assert_eq!(web_domain("https://www.gemeinde.x.zh.ch/a").as_deref(), Some("x.zh.ch"));
+        assert_eq!(web_domain("https://kanton.baselland.ch/gemeinden/augst"), None);
         assert_eq!(web_domain("https://www.ne.ch").as_deref(), None);
         assert_eq!(web_domain("http://www.ti.ch/porza").as_deref(), None);
     }

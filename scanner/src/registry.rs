@@ -135,7 +135,9 @@ pub fn build(date: chrono::NaiveDate, out: &Path) -> Result<()> {
     let rows: Vec<AgvRow> = csv::Reader::from_reader(agv.trim_start_matches('\u{feff}').as_bytes())
         .deserialize()
         .collect::<Result<_, _>>()?;
-    let by_hist: HashMap<u32, &AgvRow> = rows.iter().map(|r| (r.historical, r)).collect();
+    // Historical codes are unique per level only: a district and a commune
+    // can share one. Parents are always cantons or districts.
+    let by_hist: HashMap<u32, &AgvRow> = rows.iter().filter(|r| r.level < 3).map(|r| (r.historical, r)).collect();
     let sites = wikidata_websites()?;
 
     let mut out_rows = BTreeMap::new();
