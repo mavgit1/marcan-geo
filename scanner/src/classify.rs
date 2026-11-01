@@ -190,7 +190,9 @@ pub struct Row {
     pub status: Status,
     pub status_reason: String,
     pub resolver_disagree: bool,
-    /// Further domains and their status, `domain=status;…`.
+    /// Status of the mail domain alone, before further domains count.
+    pub mail_status: Status,
+    /// Further domains, `domain=status=policy;…` (policy: effective `p`).
     pub also: String,
     pub scan_id: String,
     pub classifier_version: u32,
@@ -257,6 +259,7 @@ pub fn classify(m: &Municipality, mail_domain: &str, source: &str, ans: &Answers
         status: Status::Unknown,
         status_reason: String::new(),
         resolver_disagree: false,
+        mail_status: Status::Unknown,
         also: String::new(),
         scan_id: scan_id.to_string(),
         classifier_version: CLASSIFIER_VERSION,
@@ -379,7 +382,7 @@ pub fn combine(mut row: Row, other: &Row) -> Row {
     if !row.also.is_empty() {
         row.also.push(';');
     }
-    row.also += &format!("{}={}", other.mail_domain, other.status.as_str());
+    row.also += &format!("{}={}={}", other.mail_domain, other.status.as_str(), other.dmarc_effective);
     let weaker = match (row.status.weakness(), other.status.weakness()) {
         (_, None) => false,
         (None, Some(_)) => true,
@@ -410,6 +413,7 @@ pub fn run(scan: &Path, registry_path: &Path, overrides: Option<&Path>) -> Resul
     for m in &municipalities {
         let (mail, source) = registry::mail_domain(m, &overrides);
         let mut row = classify(m, mail, source, &answers, &scan_id);
+        row.mail_status = row.status;
         for d in overrides.get(&m.bfs).into_iter().flat_map(registry::Override::also) {
             row = combine(row, &classify(m, d, "also", &answers, &scan_id));
         }
@@ -465,7 +469,7 @@ mod tests {
         assert_eq!(web.status, Status::None);
         let row = combine(main, &web);
         assert_eq!(row.status, Status::None);
-        assert_eq!(row.also, "gemeinde-x.ch=none");
+        assert_eq!(row.also, "gemeinde-x.ch=none=");
         assert!(row.status_reason.starts_with("weaker domain gemeinde-x.ch"));
     }
 

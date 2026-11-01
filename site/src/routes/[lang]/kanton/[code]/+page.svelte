@@ -70,14 +70,14 @@
 	<div class="table-scroll">
 		<table>
 			<thead>
-				<tr><th>{tr.municipality}</th><th>{tr.mapTitle}</th><th>{tr.policy}</th></tr>
+				<tr><th>{tr.municipality}</th><th>{tr.mapTitle}</th><th>{tr.domain}</th></tr>
 			</thead>
 			<tbody>
 				{#each munis as m}
 					<tr>
 						<td><a href="{base}/{lang}/gemeinde/{m.bfs}/">{m.name}</a></td>
 						<td><span class="swatch {m.status}"></span>{tr.status[m.status]}</td>
-						<td><code>{m.policy || tr.noRecord}</code></td>
+						<td><code>{m.domains[0]?.domain ?? ''}</code>{#if m.domains.length > 1} <span class="muted">+{m.domains.length - 1}</span>{/if}</td>
 					</tr>
 				{/each}
 			</tbody>

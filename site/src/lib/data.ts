@@ -17,8 +17,10 @@ export interface Municipality {
 	bfs: number;
 	name: string;
 	canton: string;
+	/** The weakest of `domains`, which is what counts. */
 	status: StatusKey;
-	policy: string;
+	/** Mail domain first, then further domains (website, former names). */
+	domains: { domain: string; status: StatusKey; policy: string }[];
 	spf: string;
 	history: [number, StatusKey][];
 }

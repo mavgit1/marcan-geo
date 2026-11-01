@@ -72,7 +72,7 @@
 		if (!hover) return null;
 		if (data.muniPaths) {
 			const m = muniByBfs.get(hover);
-			return m ? { title: `${m.name} (${m.canton})`, sub: `${tr.status[m.status]}${m.policy ? ` · ${m.policy}` : ''}` } : null;
+			return m ? { title: `${m.name} (${m.canton})`, sub: `${tr.status[m.status]} · ${m.domains.map((d) => d.domain).join(', ')}` } : null;
 		}
 		const c = cantonByNr.get(hover);
 		return c ? { title: cantonName(lang, c.code), counts: latest(c.series) } : null;
@@ -103,16 +103,9 @@
 	<p class="small muted">{tr.headlineSub(known(now), total)}. {tr.unknownNote(now[4])}</p>
 </section>
 
-<section>
-	<p class="kicker">{tr.byCanton}</p>
-	<h2>{tr.rankTitle}</h2>
-	<p class="small muted sub">{tr.rankSub}</p>
-	<RankedBars cantons={pub.cantons} national={now} {lang} />
-</section>
-
 <section class="map-grid">
 	<div>
-		<p class="kicker">{tr.mapLocator}</p>
+		<p class="kicker">{data.muniPaths ? tr.mapTitle : tr.mapLocator}</p>
 		<div class="map-box">
 			<Map {shapes} {labels} label={tr.mapTitle} selected={hover} onhover={(id) => (hover = id)} />
 		</div>
@@ -153,6 +146,14 @@
 		<p class="small muted">{tr.footerBuilt} <a href={MARCAN} rel="noopener">Marcan</a></p>
 	</aside>
 </section>
+
+<section>
+	<p class="kicker">{tr.byCanton}</p>
+	<h2>{tr.rankTitle}</h2>
+	<p class="small muted sub">{tr.rankSub}</p>
+	<RankedBars cantons={pub.cantons} national={now} {lang} />
+</section>
+
 
 <section>
 	<p class="kicker">{tr.trendTitle}</p>

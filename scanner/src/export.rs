@@ -35,6 +35,9 @@ struct Classified {
     spf: String,
     status: String,
     status_reason: String,
+    mail_domain: String,
+    #[serde(default)]
+    mail_status: String,
     #[serde(default)]
     also: String,
     classifier_version: u32,
@@ -50,13 +53,23 @@ struct Canton {
     series: Vec<Counts>,
 }
 
+/// One domain of a municipality: name, status of that domain alone, policy.
+#[derive(Serialize)]
+struct Domain {
+    domain: String,
+    status: String,
+    policy: String,
+}
+
 #[derive(Serialize)]
 struct Muni {
     bfs: u32,
     name: String,
     canton: String,
+    /// The weakest of `domains`, which is what counts.
     status: String,
-    policy: String,
+    /// The mail domain first, then further domains (website, former names).
+    domains: Vec<Domain>,
     spf: String,
     /// (scan index, status) at each scan where the status changed.
     history: Vec<(usize, String)>,
@@ -74,15 +87,23 @@ struct Public {
     municipalities: Option<Vec<Muni>>,
 }
 
-fn policy(c: &Classified) -> String {
-    let mut s = main_policy(c);
-    if !c.also.is_empty() {
-        s += &format!(" | also: {}", c.also.replace(';', ", "));
+fn domains(c: &Classified) -> Vec<Domain> {
+    let mut v = vec![];
+    if !c.mail_domain.is_empty() {
+        let status = if c.mail_status.is_empty() { c.status.clone() } else { c.mail_status.clone() };
+        v.push(Domain { domain: c.mail_domain.clone(), status, policy: policy(c) });
     }
-    s
+    for entry in c.also.split(';').filter(|e| !e.is_empty()) {
+        let mut it = entry.splitn(3, '=');
+        let (Some(domain), Some(status)) = (it.next(), it.next()) else { continue };
+        let p = it.next().unwrap_or("");
+        let policy = if p.is_empty() { String::new() } else { format!("p={p}") };
+        v.push(Domain { domain: domain.into(), status: status.into(), policy });
+    }
+    v
 }
 
-fn main_policy(c: &Classified) -> String {
+fn policy(c: &Classified) -> String {
     if c.status_reason.starts_with("invalid") {
         return "invalid record".into();
     }
@@ -148,7 +169,7 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
                 name: c.name.clone(),
                 canton: c.canton.clone(),
                 status: String::new(),
-                policy: String::new(),
+                domains: vec![],
                 spf: String::new(),
                 history: vec![],
             });
@@ -156,7 +177,7 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
                 m.history.push((i, c.status.clone()));
             }
             m.name = c.name.clone();
-            m.policy = policy(&c);
+            m.domains = domains(&c);
             m.spf = c.spf.clone();
             m.status = c.status.clone();
         }

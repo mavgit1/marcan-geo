@@ -67,6 +67,11 @@ type Dict = {
 	aboutMethod: string;
 	rank: (r: number, of: number) => string;
 	vsNational: (p: string) => string;
+	domain: string;
+	mailDomain: string;
+	otherDomain: string;
+	counts: string;
+	weakestNote: string;
 };
 
 const de: Dict = {
@@ -127,6 +132,11 @@ const de: Dict = {
 	aboutMethod: 'So wird gemessen',
 	rank: (r, n) => `Rang ${r} von ${n}`,
 	vsNational: (p) => `Schweiz: ${p}`,
+	domain: 'Domain',
+	mailDomain: 'Maildomain',
+	otherDomain: 'Weitere Domain',
+	counts: 'zählt',
+	weakestNote: 'Es zählt die am schwächsten geschützte Domain, denn mit jeder lassen sich Mails im Namen der Gemeinde fälschen.',
 };
 
 const fr: Dict = {
@@ -187,6 +197,11 @@ const fr: Dict = {
 	aboutMethod: 'Méthode de mesure',
 	rank: (r, n) => `Rang ${r} sur ${n}`,
 	vsNational: (p) => `Suisse : ${p}`,
+	domain: 'Domaine',
+	mailDomain: 'Domaine mail',
+	otherDomain: 'Autre domaine',
+	counts: 'compte',
+	weakestNote: 'C’est le domaine le moins protégé qui compte, car chacun permet d’envoyer de faux e-mails au nom de la commune.',
 };
 
 const it: Dict = {
@@ -247,6 +262,11 @@ const it: Dict = {
 	aboutMethod: 'Come misuriamo',
 	rank: (r, n) => `${r}° su ${n}`,
 	vsNational: (p) => `Svizzera: ${p}`,
+	domain: 'Dominio',
+	mailDomain: 'Dominio mail',
+	otherDomain: 'Altro dominio',
+	counts: 'conta',
+	weakestNote: 'Conta il dominio meno protetto, perché con ognuno si possono falsificare e-mail a nome del comune.',
 };
 
 const en: Dict = {
@@ -307,6 +327,11 @@ const en: Dict = {
 	aboutMethod: 'How it is measured',
 	rank: (r, n) => `Rank ${r} of ${n}`,
 	vsNational: (p) => `Switzerland: ${p}`,
+	domain: 'Domain',
+	mailDomain: 'Mail domain',
+	otherDomain: 'Other domain',
+	counts: 'counts',
+	weakestNote: 'The least protected domain counts, since each one can be used to fake mail in the municipality’s name.',
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
