@@ -9,9 +9,11 @@ Site: https://mavgit1.github.io/marcan-geo/
 ## How it works
 
 1. **Registry.** The list of municipalities comes from the Federal Statistical
-   Office's official commune register, their websites from Wikidata. The mail
-   domain is derived from the website's domain and corrected by hand where
-   there is evidence that it differs.
+   Office's official commune register, their websites from Wikidata. Each
+   municipality's mail domain comes from a checked inventory: usually the
+   website's domain, or the domain of its published address where there is
+   evidence that it differs. Further domains of a municipality (such as the
+   website's) are scanned too, and the least protected one counts.
 2. **Scan.** For each domain, MX, SPF and DMARC records are queried through
    Google Public DNS and Quad9 at a limited rate. No mail is sent and no
    connection is made to municipal servers.

@@ -1,6 +1,6 @@
 //! Raw answers -> one status per municipality. Pure: no network, no clock.
 //!
-//! Status rules (CLASSIFIER_VERSION 2):
+//! Status rules (CLASSIFIER_VERSION 3):
 //! - blocked:    p=reject,     pct absent or 100, not t=y
 //! - filtered:   p=quarantine, pct absent or 100, not t=y
 //! - monitoring: p=none, or any policy with pct<100 or t=y (pct is gone in DMARCbis)
@@ -24,7 +24,7 @@ use crate::registry::{self, Municipality};
 use crate::scan::{RESOLVERS, RawAnswer};
 use crate::domain;
 
-pub const CLASSIFIER_VERSION: u32 = 2;
+pub const CLASSIFIER_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -44,6 +44,17 @@ impl Status {
             Status::Monitoring => "monitoring",
             Status::None => "none",
             Status::Unknown => "unknown",
+        }
+    }
+
+    /// Protection rank, weakest highest; None for unknown (no evidence).
+    fn weakness(self) -> Option<u8> {
+        match self {
+            Status::Blocked => Some(0),
+            Status::Filtered => Some(1),
+            Status::Monitoring => Some(2),
+            Status::None => Some(3),
+            Status::Unknown => None,
         }
     }
 }
@@ -179,6 +190,8 @@ pub struct Row {
     pub status: Status,
     pub status_reason: String,
     pub resolver_disagree: bool,
+    /// Further domains and their status, `domain=status;…`.
+    pub also: String,
     pub scan_id: String,
     pub classifier_version: u32,
 }
@@ -244,6 +257,7 @@ pub fn classify(m: &Municipality, mail_domain: &str, source: &str, ans: &Answers
         status: Status::Unknown,
         status_reason: String::new(),
         resolver_disagree: false,
+        also: String::new(),
         scan_id: scan_id.to_string(),
         classifier_version: CLASSIFIER_VERSION,
     };
@@ -358,17 +372,47 @@ pub fn classify(m: &Municipality, mail_domain: &str, source: &str, ans: &Answers
     row
 }
 
+/// Every domain of a municipality can be used to fake its mail, so the
+/// weakest known one counts. An unknown result (domain gone, DNS error) adds
+/// no evidence either way.
+pub fn combine(mut row: Row, other: &Row) -> Row {
+    if !row.also.is_empty() {
+        row.also.push(';');
+    }
+    row.also += &format!("{}={}", other.mail_domain, other.status.as_str());
+    let weaker = match (row.status.weakness(), other.status.weakness()) {
+        (_, None) => false,
+        (None, Some(_)) => true,
+        (Some(a), Some(b)) => b > a,
+    };
+    if weaker {
+        row.status = other.status;
+        row.status_reason = format!("weaker domain {}: {}", other.mail_domain, other.status_reason);
+    }
+    row
+}
+
 pub fn run(scan: &Path, registry_path: &Path, overrides: Option<&Path>) -> Result<()> {
     let municipalities = registry::load(registry_path)?;
     let overrides = registry::load_overrides(overrides)?;
     let answers = Answers::load(&scan.join("raw.jsonl"))?;
+    let uncovered = registry::uncovered(&municipalities, &overrides);
+    if !overrides.is_empty() && !uncovered.is_empty() {
+        eprintln!("classify: {} municipalities not in the inventory (website domain used):", uncovered.len());
+        for m in uncovered.iter().take(20) {
+            eprintln!("  {} {} ({}) {}", m.bfs, m.name, m.canton, m.web_domain);
+        }
+    }
     let scan_id = scan.file_name().context("scan dir name")?.to_string_lossy().into_owned();
     let out = scan.join("classified.csv");
     let mut w = csv::Writer::from_path(&out)?;
     let mut counts: HashMap<&str, usize> = HashMap::new();
     for m in &municipalities {
         let (mail, source) = registry::mail_domain(m, &overrides);
-        let row = classify(m, mail, source, &answers, &scan_id);
+        let mut row = classify(m, mail, source, &answers, &scan_id);
+        for d in overrides.get(&m.bfs).into_iter().flat_map(registry::Override::also) {
+            row = combine(row, &classify(m, d, "also", &answers, &scan_id));
+        }
         *counts.entry(row.status.as_str()).or_default() += 1;
         w.serialize(&row)?;
     }
@@ -403,6 +447,26 @@ mod tests {
             }
         }
         Answers(map)
+    }
+
+    #[test]
+    fn weakest_domain_counts() {
+        let a = ans(&[
+            ("google", "x.ch", "MX", &["10 mx.x.ch."]),
+            ("google", "_dmarc.x.ch", "TXT", &["v=DMARC1; p=reject"]),
+            ("google", "gemeinde-x.ch", "MX", &[]),
+            ("google", "gemeinde-x.ch", "TXT", &[]),
+            ("google", "_dmarc.gemeinde-x.ch", "TXT", &[]),
+        ]);
+        let m = muni("gemeinde-x.ch");
+        let main = classify(&m, "x.ch", "override", &a, "s");
+        assert_eq!(main.status, Status::Blocked);
+        let web = classify(&m, "gemeinde-x.ch", "also", &a, "s");
+        assert_eq!(web.status, Status::None);
+        let row = combine(main, &web);
+        assert_eq!(row.status, Status::None);
+        assert_eq!(row.also, "gemeinde-x.ch=none");
+        assert!(row.status_reason.starts_with("weaker domain gemeinde-x.ch"));
     }
 
     fn muni(domain: &str) -> Municipality {

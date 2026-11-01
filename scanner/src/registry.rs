@@ -24,8 +24,8 @@ pub struct Municipality {
     pub web_domain: String,
 }
 
-/// `note` and `source` document the correction for people; the scanner only
-/// uses `mail_domain`.
+/// One inventory row. `note`, `source` and `checked` document it for people;
+/// the scanner uses `mail_domain` and `also`. Extra columns are ignored.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct Override {
@@ -36,6 +36,16 @@ pub struct Override {
     pub note: String,
     #[serde(default)]
     pub source: String,
+    /// Further domains of the municipality (website, former names),
+    /// separated by `;`. They are scanned too and the weakest one counts.
+    #[serde(default)]
+    pub also: String,
+}
+
+impl Override {
+    pub fn also(&self) -> impl Iterator<Item = &str> {
+        self.also.split(';').map(str::trim).filter(|d| !d.is_empty())
+    }
 }
 
 pub fn load(path: &Path) -> Result<Vec<Municipality>> {
@@ -63,6 +73,20 @@ pub fn mail_domain<'a>(m: &'a Municipality, overrides: &'a HashMap<u32, Override
         Some(o) if !o.mail_domain.is_empty() => (o.mail_domain.as_str(), "override"),
         _ => (m.web_domain.as_str(), "web"),
     }
+}
+
+/// Every domain to scan for a municipality: its mail domain, then `also`.
+pub fn all_domains<'a>(m: &'a Municipality, overrides: &'a HashMap<u32, Override>) -> Vec<&'a str> {
+    let mut v = vec![mail_domain(m, overrides).0];
+    v.extend(overrides.get(&m.bfs).into_iter().flat_map(Override::also));
+    v.retain(|d| !d.is_empty());
+    v
+}
+
+/// Municipalities the inventory doesn't cover; they fall back to the
+/// registry's website domain and need checking.
+pub fn uncovered<'a>(ms: &'a [Municipality], overrides: &HashMap<u32, Override>) -> Vec<&'a Municipality> {
+    ms.iter().filter(|m| overrides.get(&m.bfs).is_none_or(|o| o.mail_domain.is_empty())).collect()
 }
 
 fn get(url: &str) -> Result<String> {

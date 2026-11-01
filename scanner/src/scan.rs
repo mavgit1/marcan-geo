@@ -147,8 +147,8 @@ pub async fn run(registry_path: &Path, overrides: Option<&Path>, out: &Path, qps
     let overrides = registry::load_overrides(overrides)?;
     let domains: BTreeSet<String> = municipalities
         .iter()
-        .map(|m| registry::mail_domain(m, &overrides).0.to_string())
-        .filter(|d| !d.is_empty())
+        .flat_map(|m| registry::all_domains(m, &overrides))
+        .map(str::to_string)
         .collect();
 
     let resolvers: Vec<Arc<Limited>> = RESOLVERS

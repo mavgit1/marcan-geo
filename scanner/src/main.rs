@@ -37,8 +37,9 @@ enum Command {
     Scan {
         #[arg(long)]
         registry: PathBuf,
-        /// Optional overrides CSV (bfs,mail_domain,note,source).
-        #[arg(long)]
+        /// Inventory CSV (bfs,mail_domain,also,note,source,checked). Municipalities
+        /// missing from it fall back to their website domain.
+        #[arg(long, alias = "inventory")]
         overrides: Option<PathBuf>,
         /// Output directory, e.g. scans/2026-11-01. Must not exist yet.
         #[arg(long)]
@@ -54,7 +55,7 @@ enum Command {
         scan: PathBuf,
         #[arg(long)]
         registry: PathBuf,
-        #[arg(long)]
+        #[arg(long, alias = "inventory")]
         overrides: Option<PathBuf>,
     },
     /// Write the public data file from all classified scans, limited by export.toml.

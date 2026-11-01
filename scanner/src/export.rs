@@ -14,6 +14,10 @@ struct Config {
     /// 0: national and canton totals. 1: also per-municipality status,
     /// DMARC policy, SPF and history.
     level: u8,
+    /// Scans in which canton sizes may change (mergers, usually on 1 January).
+    /// Any other change stops the export: it points to a registry error.
+    #[serde(default)]
+    accept_count_changes: Vec<String>,
 }
 
 /// The classified.csv columns the export may read.
@@ -31,6 +35,8 @@ struct Classified {
     spf: String,
     status: String,
     status_reason: String,
+    #[serde(default)]
+    also: String,
     classifier_version: u32,
 }
 
@@ -69,6 +75,14 @@ struct Public {
 }
 
 fn policy(c: &Classified) -> String {
+    let mut s = main_policy(c);
+    if !c.also.is_empty() {
+        s += &format!(" | also: {}", c.also.replace(';', ", "));
+    }
+    s
+}
+
+fn main_policy(c: &Classified) -> String {
     if c.status_reason.starts_with("invalid") {
         return "invalid record".into();
     }
@@ -153,6 +167,20 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
         // Merged-away municipalities stay out of the latest view.
         if i + 1 == scan_dirs.len() {
             munis.retain(|bfs, _| seen.contains(bfs));
+        }
+    }
+
+    for (i, scan) in scans.iter().enumerate().skip(1) {
+        let changed: Vec<String> = cantons
+            .values()
+            .filter(|c| c.series[i].iter().sum::<u32>() != c.series[i - 1].iter().sum::<u32>())
+            .map(|c| format!("{} {}->{}", c.code, c.series[i - 1].iter().sum::<u32>(), c.series[i].iter().sum::<u32>()))
+            .collect();
+        if !changed.is_empty() && !config.accept_count_changes.contains(scan) {
+            bail!(
+                "canton sizes changed in scan {scan}: {}. If these are mergers, add \"{scan}\" to accept_count_changes in the export config.",
+                changed.join(", ")
+            );
         }
     }
 
