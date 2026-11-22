@@ -23,7 +23,9 @@ const config = {
 			directives: {
 				'default-src': ['self'],
 				'script-src': ['self'],
-				'style-src': ['self'],
+				// Plus the one fixed style attribute of SvelteKit's screen-reader
+				// route announcer (generated root.svelte), allowed by its hash only.
+				'style-src': ['self', 'unsafe-hashes', 'sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo='],
 				'img-src': ['self', 'data:'],
 				'font-src': ['self'],
 				'connect-src': ['self'],
