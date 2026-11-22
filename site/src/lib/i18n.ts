@@ -110,8 +110,8 @@ type Dict = {
 	spfRecord: string;
 	dkimNote: string;
 	queried: (date: string) => string;
-	better: string;
-	worse: string;
+	from: (date: string) => string;
+	since: (date: string) => string;
 };
 
 const de: Dict = {
@@ -221,8 +221,8 @@ const de: Dict = {
 	spfRecord: 'SPF-Eintrag',
 	dkimNote: 'DKIM ist nicht erfasst: Die Schlüssel lassen sich nur abfragen, wenn man ihren Namen kennt.',
 	queried: (d) => `Öffentliche DNS-Einträge, Stand ${d}.`,
-	better: 'besser als zuvor',
-	worse: 'schlechter als zuvor',
+	from: (d) => `Ab ${d}`,
+	since: (d) => `Seit ${d}`,
 };
 
 const fr: Dict = {
@@ -332,8 +332,8 @@ const fr: Dict = {
 	spfRecord: 'Enregistrement SPF',
 	dkimNote: 'DKIM n’est pas relevé : les clés ne peuvent être interrogées que si l’on connaît leur nom.',
 	queried: (d) => `Enregistrements DNS publics, état au ${d}.`,
-	better: 'mieux qu’avant',
-	worse: 'moins bien qu’avant',
+	from: (d) => `À partir du ${d}`,
+	since: (d) => `Depuis le ${d}`,
 };
 
 const it: Dict = {
@@ -443,8 +443,8 @@ const it: Dict = {
 	spfRecord: 'Record SPF',
 	dkimNote: 'DKIM non è rilevato: le chiavi si possono interrogare solo conoscendone il nome.',
 	queried: (d) => `Record DNS pubblici, stato al ${d}.`,
-	better: 'meglio di prima',
-	worse: 'peggio di prima',
+	from: (d) => `Dal ${d}`,
+	since: (d) => `Dal ${d}`,
 };
 
 const en: Dict = {
@@ -554,8 +554,8 @@ const en: Dict = {
 	spfRecord: 'SPF record',
 	dkimNote: 'DKIM is not covered: its keys can only be looked up if you know their names.',
 	queried: (d) => `Public DNS records as of ${d}.`,
-	better: 'better than before',
-	worse: 'worse than before',
+	from: (d) => `From ${d}`,
+	since: (d) => `Since ${d}`,
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };

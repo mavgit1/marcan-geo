@@ -73,7 +73,7 @@
 				{#each munis as m}
 					<tr>
 						<td><a href="{base}/{lang}/gemeinde/{m.bfs}/">{m.name}</a></td>
-						<td><span class="swatch {m.status}"></span>{tr.status[m.status]}</td>
+						<td><span class="swatch {m.status}"></span>{tr.statusShort[m.status]}</td>
 						<td class="muted"><code>{m.domains[0]?.domain ?? ''}</code>{#if m.domains.length > 1} +{m.domains.length - 1}{/if}</td>
 					</tr>
 				{/each}

@@ -11,15 +11,6 @@
 	const canton = $derived(cantonByCode(m.canton));
 	const mail = $derived(m.domains[0]);
 	const others = $derived(m.domains.slice(1));
-	// Status at every scan: history lists only the changes.
-	const statusAt = (i: number) => m.history.filter(([at]) => at <= i).at(-1)?.[1];
-	// Lower is better; unknown is not compared.
-	const RANK: Record<string, number> = { blocked: 0, filtered: 1, monitoring: 2, none: 3 };
-	const change = (i: number) => {
-		const [a, b] = [statusAt(i - 1), statusAt(i)];
-		if (i === 0 || !a || !b || !(a in RANK) || !(b in RANK) || a === b) return '';
-		return RANK[b] < RANK[a] ? tr.better : tr.worse;
-	};
 	// Mail servers as host names, without priority and trailing dot.
 	const mxText = (mx: string[]) =>
 		mx.length === 1 && mx[0].trim().startsWith('0 .')
@@ -37,7 +28,7 @@
 	<h1>{m.name}</h1>
 
 	<p class="status"><span class="swatch {m.status}"></span>{tr.status[m.status]}</p>
-	{#if others.length && deciding}
+	{#if deciding && deciding !== mail}
 		<p class="decides">{tr.deciding}: <code>{deciding.domain}</code></p>
 	{/if}
 
@@ -60,15 +51,11 @@
 
 	<h2 class="chart-title">{tr.history}</h2>
 	<ol class="timeline">
-		{#each pub.scans as scan, i}
-			{@const s = statusAt(i)}
-			{#if s}
-				<li>
-					<span class="when">{date(lang, scan)}</span>
-					<span><span class="swatch {s}"></span>{tr.status[s]}</span>
-					{#if change(i)}<span class="chg" class:up={change(i) === tr.better}>{change(i)}</span>{/if}
-				</li>
-			{/if}
+		{#each m.history as [at, s], k}
+			<li>
+				<span class="when">{(k === m.history.length - 1 ? tr.since : tr.from)(date(lang, pub.scans[at]))}</span>
+				<span><span class="swatch {s}"></span>{tr.status[s]}</span>
+			</li>
 		{/each}
 	</ol>
 
@@ -78,11 +65,11 @@
 			{#each others as d}
 				<li>
 					<code>{d.domain}</code>
-					<span class="muted"><span class="swatch {d.status}"></span>{tr.status[d.status]}{#if d.policy}{' · '}<code>{d.policy}</code>{/if}</span>
+					<span class="muted"><span class="swatch {d.status}"></span>{tr.status[d.status]}</span>
 				</li>
 			{/each}
 		</ul>
-		<p class="source">{tr.weakestNote}</p>
+		{#if deciding && deciding !== mail}<p class="source">{tr.weakestNote}</p>{/if}
 	{/if}
 
 	{#if canton}
@@ -110,7 +97,7 @@
 				<dd>{d.spf.join(' ') || tr.noRecord}</dd>
 			</dl>
 		{/each}
-		<p class="note">{tr.queried(date(lang, latest(pub.scans)))} {tr.dkimNote}</p>
+		<p class="note">{tr.dkimNote}</p>
 	</details>
 </div>
 
@@ -199,14 +186,6 @@
 		min-width: 11rem;
 		color: var(--muted);
 		font-variant-numeric: tabular-nums;
-	}
-	.chg {
-		font-size: 0.85rem;
-		color: var(--muted);
-	}
-	.chg.up {
-		color: var(--fg);
-		font-weight: 650;
 	}
 	.note {
 		font-size: 0.85rem;
