@@ -4,7 +4,7 @@ How well do Swiss municipalities protect their sender address against
 spoofing? This project measures the DMARC and SPF records of all 2,110 Swiss
 municipalities and publishes the results as a map.
 
-Site: https://mavgit1.github.io/marcan-geo/
+Site: https://dmarc-ch.research.kaitiaki.tech/
 
 ## How it works
 

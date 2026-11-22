@@ -12,6 +12,8 @@
 	// Same page in another language.
 	const switchTo = (l: string) => page.url.pathname.replace(`${base}/${lang}/`, `${base}/${l}/`);
 	const here = (p: string) => page.url.pathname === `${base}/${lang}/${p}`;
+	// The byline names Marcan once; that word becomes the link.
+	const byline = $derived(tr.footerBuilt.split(/Marcan(.*)/s));
 </script>
 
 <header class="top">
@@ -36,12 +38,11 @@
 
 <footer class="wrap foot muted">
 	<p>{tr.scanOf(date(lang, latest(pub.scans)))} · {tr.footerData}</p>
-	<p>{tr.footerBuilt}</p>
+	<p>{byline[0]}<a href="https://marcan.kaitiaki.tech/" rel="noopener">Marcan</a>{byline[1]}</p>
 	<p>
 		<a href="{base}/{lang}/method/">{tr.nav.method}</a> ·
 		<a href="https://github.com/mavgit1/marcan-geo" rel="noopener">Code</a> ·
-		<a href="{base}/{lang}/method/#corrections">{tr.footerCorrections}</a> ·
-		<a href="https://marcan.kaitiaki.tech/" rel="noopener">Marcan</a>
+		<a href="{base}/{lang}/method/#corrections">{tr.footerCorrections}</a>
 	</p>
 </footer>
 
