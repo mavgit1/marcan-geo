@@ -101,6 +101,15 @@ type Dict = {
 	goalPara: string;
 	goalLink: string;
 	methodNote: (n: number) => string;
+	dmarcRecord: string;
+	foundAt: string;
+	inheritedFrom: string;
+	mxLabel: string;
+	noMx: string;
+	nullMx: string;
+	spfRecord: string;
+	dkimNote: string;
+	queried: (date: string) => string;
 };
 
 const de: Dict = {
@@ -201,6 +210,15 @@ const de: Dict = {
 	goalPara: 'Das Ziel ist für alle Gemeinden dasselbe: die Richtlinie «ablehnen» auf jeder Domain, auch auf jenen, die nur für die Website dienen und keine Mails verschicken. Der Weg dorthin führt über einen Eintrag mit Berichtsadresse, einige Wochen Auswertung und dann die Umstellung auf «Quarantäne» und «ablehnen». Beim IT-Dienstleister lässt sich das oft für viele Gemeinden zugleich erledigen.',
 	goalLink: 'Anleitung für Gemeinden und IT-Dienstleister',
 	methodNote: (n) => `Erfasst sind die öffentlichen DNS-Einträge (DMARC, SPF, MX) aller ${n} Gemeinden, abgefragt über öffentliche DNS-Resolver. Es werden keine Mails verschickt und keine Server der Gemeinden kontaktiert. Die Messung wird wiederholt; bestätigte Korrekturen fliessen jeweils ein.`,
+	dmarcRecord: 'DMARC-Eintrag',
+	foundAt: 'unter',
+	inheritedFrom: 'übernommen von',
+	mxLabel: 'Mailserver (MX)',
+	noMx: 'keiner; die Domain empfängt keine Mails',
+	nullMx: 'Null-MX; die Domain nimmt ausdrücklich keine Mails an',
+	spfRecord: 'SPF-Eintrag',
+	dkimNote: 'DKIM wird nicht geprüft: Die Namen der Schlüssel (Selektoren) sind nicht öffentlich abrufbar.',
+	queried: (d) => `Abgefragt am ${d} über Google Public DNS, verglichen mit Quad9. Die Einträge sind öffentlich und lassen sich mit jedem DNS-Werkzeug nachprüfen.`,
 };
 
 const fr: Dict = {
@@ -301,6 +319,15 @@ const fr: Dict = {
 	goalPara: 'L’objectif est le même pour toutes les communes : la politique « rejet » sur chaque domaine, y compris ceux qui ne servent qu’au site web et n’envoient pas d’e-mails. Le chemin passe par un enregistrement avec adresse de rapport, quelques semaines d’analyse, puis le passage à « quarantaine » et « rejet ». Chez le prestataire informatique, cela peut souvent se faire pour de nombreuses communes à la fois.',
 	goalLink: 'Guide pour les communes et les prestataires informatiques',
 	methodNote: (n) => `Sont relevés les enregistrements DNS publics (DMARC, SPF, MX) des ${n} communes, interrogés via des résolveurs DNS publics. Aucun e-mail n’est envoyé et aucun serveur communal n’est contacté. La mesure est répétée ; les corrections confirmées y sont intégrées.`,
+	dmarcRecord: 'Enregistrement DMARC',
+	foundAt: 'sous',
+	inheritedFrom: 'repris de',
+	mxLabel: 'Serveurs de messagerie (MX)',
+	noMx: 'aucun ; le domaine ne reçoit pas d’e-mails',
+	nullMx: 'MX nul ; le domaine refuse explicitement les e-mails',
+	spfRecord: 'Enregistrement SPF',
+	dkimNote: 'DKIM n’est pas vérifié : les noms des clés (sélecteurs) ne sont pas consultables publiquement.',
+	queried: (d) => `Interrogé le ${d} via Google Public DNS, comparé avec Quad9. Les enregistrements sont publics et vérifiables avec tout outil DNS.`,
 };
 
 const it: Dict = {
@@ -401,6 +428,15 @@ const it: Dict = {
 	goalPara: 'L’obiettivo è lo stesso per tutti i comuni: la politica «rifiuto» su ogni dominio, anche su quelli che servono solo al sito web e non inviano e-mail. La strada passa da un record con indirizzo per i rapporti, alcune settimane di analisi e poi il passaggio a «quarantena» e «rifiuto». Presso il fornitore IT questo si può spesso fare per molti comuni contemporaneamente.',
 	goalLink: 'Guida per comuni e fornitori IT',
 	methodNote: (n) => `Sono rilevati i record DNS pubblici (DMARC, SPF, MX) di tutti i ${n} comuni, interrogati tramite resolver DNS pubblici. Non viene inviata alcuna e-mail e non viene contattato alcun server comunale. La misurazione viene ripetuta; le correzioni confermate vi confluiscono.`,
+	dmarcRecord: 'Record DMARC',
+	foundAt: 'sotto',
+	inheritedFrom: 'ripreso da',
+	mxLabel: 'Server di posta (MX)',
+	noMx: 'nessuno; il dominio non riceve e-mail',
+	nullMx: 'MX nullo; il dominio rifiuta esplicitamente le e-mail',
+	spfRecord: 'Record SPF',
+	dkimNote: 'DKIM non viene verificato: i nomi delle chiavi (selettori) non sono consultabili pubblicamente.',
+	queried: (d) => `Interrogato il ${d} tramite Google Public DNS, confrontato con Quad9. I record sono pubblici e verificabili con qualsiasi strumento DNS.`,
 };
 
 const en: Dict = {
@@ -501,6 +537,15 @@ const en: Dict = {
 	goalPara: 'The goal is the same for every municipality: a reject policy on every domain, including those that only serve the website and send no mail. The way there is a record with a report address, a few weeks of reading the reports, then the move to quarantine and reject. At the IT provider this can often be done for many municipalities at once.',
 	goalLink: 'Guide for municipalities and IT providers',
 	methodNote: (n) => `Covered are the public DNS records (DMARC, SPF, MX) of all ${n} municipalities, queried through public DNS resolvers. No mail is sent and no municipal server is contacted. The measurement is repeated; confirmed corrections are included each time.`,
+	dmarcRecord: 'DMARC record',
+	foundAt: 'at',
+	inheritedFrom: 'inherited from',
+	mxLabel: 'Mail servers (MX)',
+	noMx: 'none; the domain receives no mail',
+	nullMx: 'null MX; the domain explicitly accepts no mail',
+	spfRecord: 'SPF record',
+	dkimNote: 'DKIM is not checked: the key names (selectors) cannot be looked up publicly.',
+	queried: (d) => `Queried on ${d} through Google Public DNS, compared with Quad9. The records are public and can be checked with any DNS tool.`,
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };

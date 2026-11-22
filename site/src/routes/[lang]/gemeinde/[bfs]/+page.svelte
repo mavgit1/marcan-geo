@@ -11,6 +11,8 @@
 	const canton = $derived(cantonByCode(m.canton));
 	const mail = $derived(m.domains[0]);
 	const others = $derived(m.domains.slice(1));
+	// Status at every scan: history lists only the changes.
+	const statusAt = (i: number) => m.history.filter(([at]) => at <= i).at(-1)?.[1];
 	// The domain that decides the rating, if exactly one has the final status.
 	const deciding = $derived(m.domains.filter((d) => d.status === m.status).length === 1 ? m.domains.find((d) => d.status === m.status) : undefined);
 </script>
@@ -67,16 +69,50 @@
 
 	<details>
 		<summary>{tr.techDetails}</summary>
-		<dl>
-			<dt>{tr.spf}</dt>
-			<dd>{tr.spfValues[m.spf] ?? m.spf}</dd>
-			<dt>{tr.history}</dt>
-			<dd>
-				{#each m.history as [i, s]}
-					<div><span class="swatch {s}"></span>{date(lang, pub.scans[i])}: {tr.status[s]}</div>
-				{/each}
-			</dd>
-		</dl>
+		{#each data.details as d, k}
+			<h3><code>{d.domain}</code></h3>
+			<dl>
+				<dt>{tr.dmarcRecord}</dt>
+				<dd>
+					{#if d.dmarc.length}
+						{#each d.dmarc as r}<pre>{r}</pre>{/each}
+						<span class="muted">{d.dmarc_at === `_dmarc.${d.domain}` ? tr.foundAt : tr.inheritedFrom} <code>{d.dmarc_at}</code></span>
+					{:else}
+						{tr.noRecord}
+					{/if}
+				</dd>
+				<dt>{tr.mxLabel}</dt>
+				<dd>
+					{#if d.mx.length === 1 && d.mx[0].trim().startsWith('0 .')}
+						{tr.nullMx}
+					{:else if d.mx.length}
+						{#each d.mx as r}<div><code>{r}</code></div>{/each}
+					{:else}
+						{tr.noMx}
+					{/if}
+				</dd>
+				<dt>{tr.spfRecord}</dt>
+				<dd>
+					{#if d.spf.length}
+						{#each d.spf as r}<pre>{r}</pre>{/each}
+						{#if k === 0}<span class="muted">{tr.spfValues[m.spf] ?? m.spf}</span>{/if}
+					{:else}
+						{tr.noRecord}
+					{/if}
+				</dd>
+			</dl>
+		{/each}
+		<p class="muted small">{tr.dkimNote}</p>
+		<h3>{tr.history}</h3>
+		<ul class="history">
+			{#each pub.scans as scan, i}
+				{@const s = statusAt(i)}
+				{#if s}
+					<li><span class="swatch {s}"></span>{date(lang, scan)}: {tr.status[s]}</li>
+				{/if}
+			{/each}
+		</ul>
+		<p class="muted small">{tr.queried(date(lang, latest(pub.scans)))}</p>
 	</details>
 </div>
 
@@ -127,6 +163,25 @@
 	}
 	dt {
 		color: var(--muted);
+	}
+	details h3 {
+		font-size: 1rem;
+		margin: 1.2rem 0 0.4rem;
+	}
+	pre {
+		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		font-size: 0.85rem;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		margin: 0 0 0.2rem;
+	}
+	.history {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.small {
+		font-size: 0.85rem;
 	}
 	dd {
 		margin: 0;

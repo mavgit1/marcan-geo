@@ -7,8 +7,8 @@ import type { EntryGenerator, PageLoad } from './$types';
 export const entries: EntryGenerator = () =>
 	langs.flatMap((lang) => (data.municipalities ?? []).map((m) => ({ lang, bfs: String(m.bfs) })));
 
-export const load: PageLoad = ({ params }) => {
+export const load: PageLoad = ({ params, data: server }) => {
 	const m = data.municipalities?.find((x) => String(x.bfs) === params.bfs);
 	if (!m) error(404);
-	return { m };
+	return { m, details: server.details };
 };

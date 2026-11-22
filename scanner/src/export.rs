@@ -45,6 +45,56 @@ struct Classified {
 
 type Counts = [u32; 5];
 
+/// The records behind one domain's rating in the latest scan, as published
+/// (primary resolver). For the municipality page's technical details.
+#[derive(Serialize)]
+struct Detail {
+    domain: String,
+    mx: Vec<String>,
+    spf: Vec<String>,
+    dmarc: Vec<String>,
+    /// Where the DMARC record was found: `_dmarc.<domain>` or, when the
+    /// domain has none, the organizational domain's.
+    dmarc_at: String,
+}
+
+/// Primary-resolver answers of one scan: (qname, qtype) -> records.
+fn answers(scan: &Path) -> Result<std::collections::HashMap<(String, String), Vec<String>>> {
+    use std::io::BufRead;
+    let mut map = std::collections::HashMap::new();
+    let f = std::io::BufReader::new(std::fs::File::open(scan.join("raw.jsonl"))?);
+    for line in f.lines() {
+        let a: crate::scan::RawAnswer = serde_json::from_str(&line?)?;
+        if a.resolver == crate::scan::RESOLVERS[0].0 {
+            let records = if a.status == "ok" { a.records } else { vec![] };
+            map.insert((a.qname.trim_end_matches('.').to_ascii_lowercase(), a.qtype), records);
+        }
+    }
+    Ok(map)
+}
+
+fn detail(domain: &str, ans: &std::collections::HashMap<(String, String), Vec<String>>) -> Detail {
+    let get = |q: &str, t: &str| ans.get(&(q.to_string(), t.to_string())).cloned().unwrap_or_default();
+    let starts = |v: Vec<String>, p: &str| -> Vec<String> {
+        v.into_iter().filter(|r| r.to_ascii_lowercase().starts_with(p)).collect()
+    };
+    let mut dmarc_at = format!("_dmarc.{domain}");
+    let mut dmarc = starts(get(&dmarc_at, "TXT"), "v=dmarc1");
+    if dmarc.is_empty() {
+        if let Some(org) = crate::domain::organizational_domain(domain).filter(|o| o != domain) {
+            let at = format!("_dmarc.{org}");
+            let found = starts(get(&at, "TXT"), "v=dmarc1");
+            if !found.is_empty() {
+                dmarc = found;
+                dmarc_at = at;
+            }
+        }
+    }
+    let mut mx = get(domain, "MX");
+    mx.sort();
+    Detail { domain: domain.into(), mx, spf: starts(get(domain, "TXT"), "v=spf1"), dmarc, dmarc_at }
+}
+
 #[derive(Serialize)]
 struct Canton {
     nr: u32,
@@ -230,6 +280,17 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
         municipalities: (config.level >= 1).then(|| munis.into_values().collect()),
     };
     std::fs::write(out, serde_json::to_string(&public)?)?;
+
+    // Level 1: the records behind each municipality's rating, in a file of
+    // their own so that only municipality pages load them.
+    if let Some(m) = &public.municipalities {
+        let ans = answers(scan_dirs.last().context("no scans")?)?;
+        let details: BTreeMap<u32, Vec<Detail>> =
+            m.iter().map(|m| (m.bfs, m.domains.iter().map(|d| detail(&d.domain, &ans)).collect())).collect();
+        let path = out.with_file_name("details.json");
+        std::fs::write(&path, serde_json::to_string(&details)?)?;
+        eprintln!("export: details -> {}", path.display());
+    }
     eprintln!(
         "export: level {}, {} scans -> {}",
         public.level,
