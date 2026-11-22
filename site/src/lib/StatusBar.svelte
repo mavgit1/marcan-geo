@@ -21,10 +21,10 @@
 {#if legend}
 	<ul class="legend">
 		{#each KNOWN as s, i}
-			<li><span class="swatch {s}"></span>{t(lang).status[s]} <span class="muted">{counts[i]} · {pct(lang, base ? counts[i] / base : 0)}</span></li>
+			<li><span class="swatch {s}"></span>{t(lang).statusShort[s]} <span class="muted">{pct(lang, base ? counts[i] / base : 0)} · {counts[i]}</span></li>
 		{/each}
 		{#if counts[4] > 0}
-			<li class="muted"><span class="swatch unknown"></span>{t(lang).status.unknown}: {counts[4]}</li>
+			<li><span class="swatch unknown"></span>{t(lang).statusShort.unknown} <span class="muted">{counts[4]}</span></li>
 		{/if}
 	</ul>
 {/if}

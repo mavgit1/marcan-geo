@@ -88,6 +88,19 @@ type Dict = {
 	trendSince: (date: string, up: number, down: number) => string;
 	correctionLog: string;
 	noCorrections: string;
+	statusShort: Record<StatusKey, string>;
+	keyTitle: string;
+	lead: (share: string, n: number, top: string, topP: string, bottom: string, bottomP: string) => string;
+	basis: (known: number, total: number, bare: number) => string;
+	why: string;
+	mapSub: string;
+	sourceLine: string;
+	cantonsPara: string;
+	changePara: (date: string, up: number, down: number, bare0: number, bare1: number) => string;
+	goalTitle: string;
+	goalPara: string;
+	goalLink: string;
+	methodNote: (n: number) => string;
 };
 
 const de: Dict = {
@@ -175,6 +188,19 @@ const de: Dict = {
 	trendSince: (d, up, down) => `Seit dem ${d} haben ${up} Gemeinden ihre Einstufung verbessert, ${down} verschlechtert.`,
 	correctionLog: 'Korrekturprotokoll',
 	noCorrections: 'Bisher wurden keine Korrekturen gemeldet.',
+	statusShort: { blocked: 'Ablehnen', filtered: 'Quarantäne', monitoring: 'Nur Überwachung', none: 'Kein wirksames DMARC', unknown: 'Keine Daten' },
+	keyTitle: 'DMARC-Einstufung der Gemeinden',
+	lead: (s, n, t, tp, b, bp) => `${s} der Schweizer Gemeinden veröffentlichen eine Richtlinie, die empfangende Mailserver anweist, gefälschte Mails mit ihrem Absender abzuweisen oder als Spam zu behandeln. Zwischen den Kantonen sind die Unterschiede gross: In ${t} sind es ${tp}, in ${b} ${bp}.`,
+	basis: (k, t, b) => `Anteile bezogen auf ${k} von ${t} Gemeinden mit auswertbaren Daten. «Kein wirksames DMARC» umfasst ${b} Gemeinden mit einem Eintrag p=none ohne Berichtsadresse.`,
+	why: 'Gemeinden verschicken Rechnungen, Steuerunterlagen und Abstimmungsinformationen per Mail. Wer ihre Absenderadresse fälscht, kann damit glaubwürdige Betrugsmails versenden. DMARC ist ein öffentlicher DNS-Eintrag, mit dem eine Domain empfangenden Mailservern mitteilt, was mit solchen Fälschungen geschehen soll: abweisen, als Spam behandeln oder bloss melden.',
+	mapSub: 'Jede Fläche ist eine Gemeinde. Name, Domain und Einstufung erscheinen beim Darüberfahren oder Antippen.',
+	sourceLine: 'Quelle: eigene Messung der öffentlichen DNS-Einträge.',
+	cantonsPara: 'Wie gut eine Gemeinde geschützt ist, hängt oft davon ab, wer ihre Domains betreut. Viele Gemeinden teilen sich einen IT-Dienstleister oder die kantonale Informatik. Hat dieser DMARC eingerichtet, sind häufig alle seine Gemeinden geschützt; hat er es nicht, keine.',
+	changePara: (d, up, down, b0, b1) => `Seit der ersten Messung am ${d} haben ${up} Gemeinden ihre Einstufung verbessert, ${down} verschlechtert. Im gleichen Zeitraum stieg die Zahl der Gemeinden mit einem DMARC-Eintrag ohne Berichtsadresse von ${b0} auf ${b1}. Ein solcher Eintrag verlangt keine Massnahme und liefert niemandem Berichte; er gilt hier deshalb nicht als wirksam.`,
+	goalTitle: 'Was es bräuchte',
+	goalPara: 'Das Ziel ist für alle Gemeinden dasselbe: die Richtlinie «ablehnen» auf jeder Domain, auch auf jenen, die nur für die Website dienen und keine Mails verschicken. Der Weg dorthin führt über einen Eintrag mit Berichtsadresse, einige Wochen Auswertung und dann die Umstellung auf «Quarantäne» und «ablehnen». Beim IT-Dienstleister lässt sich das oft für viele Gemeinden zugleich erledigen.',
+	goalLink: 'Anleitung für Gemeinden und IT-Dienstleister',
+	methodNote: (n) => `Erfasst sind die öffentlichen DNS-Einträge (DMARC, SPF, MX) aller ${n} Gemeinden, abgefragt über öffentliche DNS-Resolver. Es werden keine Mails verschickt und keine Server der Gemeinden kontaktiert. Die Messung wird wiederholt; bestätigte Korrekturen fliessen jeweils ein.`,
 };
 
 const fr: Dict = {
@@ -262,6 +288,19 @@ const fr: Dict = {
 	trendSince: (d, up, down) => `Depuis le ${d}, ${up} communes ont amélioré leur évaluation et ${down} ont reculé.`,
 	correctionLog: 'Journal des corrections',
 	noCorrections: 'Aucune correction signalée jusqu’ici.',
+	statusShort: { blocked: 'Rejet', filtered: 'Quarantaine', monitoring: 'Surveillance seule', none: 'Pas de DMARC effectif', unknown: 'Pas de données' },
+	keyTitle: 'Classement DMARC des communes',
+	lead: (s, n, t, tp, b, bp) => `${s} des communes suisses publient une politique qui demande aux serveurs destinataires de rejeter les e-mails usurpant leur adresse ou de les classer en spam. Les écarts entre cantons sont importants : ${t} atteint ${tp}, ${b} ${bp}.`,
+	basis: (k, t, b) => `Parts calculées sur ${k} des ${t} communes disposant de données exploitables. « Pas de DMARC effectif » comprend ${b} communes avec un enregistrement p=none sans adresse de rapport.`,
+	why: 'Les communes envoient par e-mail des factures, des documents fiscaux et des informations de vote. Qui usurpe leur adresse d’expéditeur peut envoyer des e-mails frauduleux crédibles. DMARC est un enregistrement DNS public par lequel un domaine indique aux serveurs destinataires ce qu’ils doivent faire de ces faux : les rejeter, les classer en spam ou seulement les signaler.',
+	mapSub: 'Chaque surface est une commune. Le nom, le domaine et le classement s’affichent au survol ou au toucher.',
+	sourceLine: 'Source : mesure propre des enregistrements DNS publics.',
+	cantonsPara: 'Le niveau de protection d’une commune dépend souvent de qui gère ses domaines. Beaucoup de communes partagent un prestataire informatique ou l’informatique cantonale. Si celui-ci a configuré DMARC, souvent toutes ses communes sont protégées ; sinon, aucune.',
+	changePara: (d, up, down, b0, b1) => `Depuis la première mesure du ${d}, ${up} communes ont amélioré leur classement et ${down} ont reculé. Dans le même temps, le nombre de communes avec un enregistrement DMARC sans adresse de rapport est passé de ${b0} à ${b1}. Un tel enregistrement ne demande aucune mesure et ne fournit de rapports à personne ; il n’est donc pas considéré comme effectif ici.`,
+	goalTitle: 'Ce qu’il faudrait',
+	goalPara: 'L’objectif est le même pour toutes les communes : la politique « rejet » sur chaque domaine, y compris ceux qui ne servent qu’au site web et n’envoient pas d’e-mails. Le chemin passe par un enregistrement avec adresse de rapport, quelques semaines d’analyse, puis le passage à « quarantaine » et « rejet ». Chez le prestataire informatique, cela peut souvent se faire pour de nombreuses communes à la fois.',
+	goalLink: 'Guide pour les communes et les prestataires informatiques',
+	methodNote: (n) => `Sont relevés les enregistrements DNS publics (DMARC, SPF, MX) des ${n} communes, interrogés via des résolveurs DNS publics. Aucun e-mail n’est envoyé et aucun serveur communal n’est contacté. La mesure est répétée ; les corrections confirmées y sont intégrées.`,
 };
 
 const it: Dict = {
@@ -349,6 +388,19 @@ const it: Dict = {
 	trendSince: (d, up, down) => `Dal ${d}, ${up} comuni hanno migliorato la loro valutazione e ${down} sono peggiorati.`,
 	correctionLog: 'Registro delle correzioni',
 	noCorrections: 'Finora non è stata segnalata alcuna correzione.',
+	statusShort: { blocked: 'Rifiuto', filtered: 'Quarantena', monitoring: 'Solo monitoraggio', none: 'Nessun DMARC efficace', unknown: 'Nessun dato' },
+	keyTitle: 'Classificazione DMARC dei comuni',
+	lead: (s, n, t, tp, b, bp) => `Il ${s} dei comuni svizzeri pubblica una politica che chiede ai server destinatari di respingere le e-mail che ne falsificano l’indirizzo o di trattarle come spam. Le differenze tra i cantoni sono grandi: ${t} raggiunge il ${tp}, ${b} il ${bp}.`,
+	basis: (k, t, b) => `Quote calcolate su ${k} dei ${t} comuni con dati utilizzabili. «Nessun DMARC efficace» comprende ${b} comuni con un record p=none senza indirizzo per i rapporti.`,
+	why: 'I comuni inviano per e-mail fatture, documenti fiscali e informazioni di voto. Chi ne falsifica l’indirizzo del mittente può inviare e-mail fraudolente credibili. DMARC è un record DNS pubblico con cui un dominio indica ai server destinatari cosa fare di tali falsi: respingerli, trattarli come spam o soltanto segnalarli.',
+	mapSub: 'Ogni superficie è un comune. Nome, dominio e classificazione appaiono passandoci sopra o toccando.',
+	sourceLine: 'Fonte: misurazione propria dei record DNS pubblici.',
+	cantonsPara: 'Il livello di protezione di un comune dipende spesso da chi gestisce i suoi domini. Molti comuni condividono un fornitore IT o l’informatica cantonale. Se questo ha configurato DMARC, spesso tutti i suoi comuni sono protetti; altrimenti nessuno.',
+	changePara: (d, up, down, b0, b1) => `Dalla prima misurazione del ${d}, ${up} comuni hanno migliorato la loro classificazione e ${down} sono peggiorati. Nello stesso periodo il numero di comuni con un record DMARC senza indirizzo per i rapporti è salito da ${b0} a ${b1}. Un tale record non chiede alcuna misura e non fornisce rapporti a nessuno; qui non è quindi considerato efficace.`,
+	goalTitle: 'Che cosa servirebbe',
+	goalPara: 'L’obiettivo è lo stesso per tutti i comuni: la politica «rifiuto» su ogni dominio, anche su quelli che servono solo al sito web e non inviano e-mail. La strada passa da un record con indirizzo per i rapporti, alcune settimane di analisi e poi il passaggio a «quarantena» e «rifiuto». Presso il fornitore IT questo si può spesso fare per molti comuni contemporaneamente.',
+	goalLink: 'Guida per comuni e fornitori IT',
+	methodNote: (n) => `Sono rilevati i record DNS pubblici (DMARC, SPF, MX) di tutti i ${n} comuni, interrogati tramite resolver DNS pubblici. Non viene inviata alcuna e-mail e non viene contattato alcun server comunale. La misurazione viene ripetuta; le correzioni confermate vi confluiscono.`,
 };
 
 const en: Dict = {
@@ -436,6 +488,19 @@ const en: Dict = {
 	trendSince: (d, up, down) => `Since ${d}, ${up} municipalities have improved their rating and ${down} have fallen back.`,
 	correctionLog: 'Correction log',
 	noCorrections: 'No corrections reported so far.',
+	statusShort: { blocked: 'Reject', filtered: 'Quarantine', monitoring: 'Monitoring only', none: 'No effective DMARC', unknown: 'No data' },
+	keyTitle: 'DMARC rating of the municipalities',
+	lead: (s, n, t, tp, b, bp) => `${s} of Swiss municipalities publish a policy that tells receiving mail servers to reject mail faking their address or to treat it as spam. The differences between cantons are large: ${tp} in ${t}, ${bp} in ${b}.`,
+	basis: (k, t, b) => `Shares based on ${k} of ${t} municipalities with usable data. “No effective DMARC” includes ${b} municipalities with a p=none record without a report address.`,
+	why: 'Municipalities send bills, tax documents and voting information by email. Whoever forges their sender address can send convincing fraudulent mail. DMARC is a public DNS record with which a domain tells receiving mail servers what to do with such forgeries: reject them, treat them as spam or merely report them.',
+	mapSub: 'Each area is a municipality. Name, domain and rating appear on hover or tap.',
+	sourceLine: 'Source: own measurement of public DNS records.',
+	cantonsPara: 'How well a municipality is protected often depends on who runs its domains. Many municipalities share an IT provider or the cantonal IT office. Where it has set up DMARC, often all its municipalities are protected; where it has not, none are.',
+	changePara: (d, up, down, b0, b1) => `Since the first measurement on ${d}, ${up} municipalities have improved their rating and ${down} have fallen back. Over the same period, the number of municipalities with a DMARC record but no report address rose from ${b0} to ${b1}. Such a record asks for no action and reports to nobody, so it does not count as effective here.`,
+	goalTitle: 'What it would take',
+	goalPara: 'The goal is the same for every municipality: a reject policy on every domain, including those that only serve the website and send no mail. The way there is a record with a report address, a few weeks of reading the reports, then the move to quarantine and reject. At the IT provider this can often be done for many municipalities at once.',
+	goalLink: 'Guide for municipalities and IT providers',
+	methodNote: (n) => `Covered are the public DNS records (DMARC, SPF, MX) of all ${n} municipalities, queried through public DNS resolvers. No mail is sent and no municipal server is contacted. The measurement is repeated; confirmed corrections are included each time.`,
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
@@ -480,3 +545,9 @@ const cantonNames: Record<string, [string, string, string, string]> = {
 };
 
 export const cantonName = (lang: Lang, code: string): string => cantonNames[code]?.[langs.indexOf(lang)] ?? code;
+
+/** Percent in running text: NZZ/SRF write the word out in German and Italian. */
+export const pctText = (lang: Lang, x: number): string => {
+	const n = Math.round(x * 100);
+	return { de: `${n} Prozent`, fr: `${n} %`, it: `${n} per cento`, en: `${n} per cent` }[lang];
+};

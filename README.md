@@ -6,6 +6,15 @@ municipalities and publishes the results as a map.
 
 Site: https://dmarc-ch.research.kaitiaki.tech/
 
+## Related: Marcan
+
+This survey is a side project of [Marcan](https://marcan.kaitiaki.tech/), an
+open-source, self-hosted tool for reading DMARC reports, by the same author.
+The scanner here is written for this project: it uses the same approach and
+libraries as Marcan's DNS checks (hickory-resolver, the Public Suffix List)
+but no code from it. The rating depends only on public DNS records, not on
+which tool a municipality uses; the site lists Marcan among other tools.
+
 ## How it works
 
 1. **Registry.** The list of municipalities comes from the Federal Statistical

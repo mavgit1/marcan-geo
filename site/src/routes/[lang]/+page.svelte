@@ -7,8 +7,7 @@
 	import Trend from '$lib/Trend.svelte';
 	import { data as pub, latest, enforcing, known, STATUSES } from '$lib/data';
 	import { shareVar, statusVar } from '$lib/colors';
-	import { t, pct, date, cantonName } from '$lib/i18n';
-	import { ISSUES, MARCAN } from '$lib/content';
+	import { t, pct, pctText, date, cantonName } from '$lib/i18n';
 	import cantonPaths from '$lib/geo/cantons.json';
 	import geo from '$lib/geo/base.json';
 
@@ -102,27 +101,28 @@
 	<p class="kicker">{tr.kicker(date(lang, scanDate))}</p>
 	<h1>{tr.title(share)}</h1>
 	<p class="dek">
-		{tr.dek(
+		{tr.lead(
+			pctText(lang, share),
+			known(now),
 			cantonName(lang, top.code),
-			pct(lang, enforcing(latest(top.series))),
+			pctText(lang, enforcing(latest(top.series))),
 			cantonName(lang, bottom.code),
-			pct(lang, enforcing(latest(bottom.series))),
-			pct(lang, now[2] / known(now))
+			pctText(lang, enforcing(latest(bottom.series)))
 		)}
-	</p>
-	<p class="byline">
-		{tr.measured(date(lang, scanDate))} · <a href="{base}/{lang}/method/">{tr.aboutMethod}</a> · {tr.byAuthor} <a href={MARCAN} rel="noopener">Marcan</a>
 	</p>
 </header>
 
 <section class="national text">
+	<h2 class="chart-title">{tr.keyTitle}</h2>
 	<StatusBar counts={now} {lang} />
-	<p class="source">{tr.headlineSub(known(now), total)}. {tr.status.none}: {tr.noneSplit(latest(pub.none_without_rua))}.</p>
+	<p class="source">{tr.basis(known(now), total, latest(pub.none_without_rua))}</p>
 </section>
 
-<section>
+<p class="prose text">{tr.why}</p>
+
+<section class="figure">
 	<h2 class="chart-title">{tr.mapTitle}</h2>
-	<p class="chart-sub">{data.muniPaths ? tr.mapHint : tr.legendShare}</p>
+	<p class="chart-sub">{data.muniPaths ? tr.mapSub : tr.legendShare}</p>
 	<div class="map-box">
 		<Map {shapes} {labels} label={tr.mapTitle} selected={hover} onhover={(id) => (hover = id)} />
 	</div>
@@ -130,14 +130,16 @@
 	{#if !data.muniPaths}
 		<ShareLegend {lang} title={tr.legendShare} average={share} averageLabel={tr.average(pct(lang, share))} />
 	{/if}
-	<p class="source">{tr.source(date(lang, scanDate))}</p>
+	<p class="source">{tr.sourceLine}</p>
 </section>
 
-<section>
+<p class="prose text">{tr.cantonsPara}</p>
+
+<section class="figure">
 	<h2 class="chart-title">{tr.rankTitle}</h2>
 	<p class="chart-sub">{tr.rankSub}</p>
 	<RankedBars cantons={pub.cantons} national={now} {lang} />
-	<p class="source">{tr.source(date(lang, scanDate))} * {tr.smallN}</p>
+	<p class="source">{tr.sourceLine} * {tr.smallN}</p>
 	<details class="table-view">
 		<summary>{tr.tableView}</summary>
 		<div class="table-scroll">
@@ -148,7 +150,7 @@
 						<th class="num">{tr.enforcing}</th>
 						<th class="num">{tr.municipalities}</th>
 						{#each STATUSES as s}
-							<th class="num"><span class="swatch {s}"></span><span class="sr-only">{tr.status[s]}</span></th>
+							<th class="num"><span class="swatch {s}"></span><span class="sr-only">{tr.statusShort[s]}</span></th>
 						{/each}
 					</tr>
 				</thead>
@@ -170,19 +172,29 @@
 	</details>
 </section>
 
-<section>
+{#if pub.scans.length > 1 && munis.length}
+	<p class="prose text">
+		{tr.changePara(date(lang, pub.scans[0]), change.up, change.down, pub.none_without_rua[0], latest(pub.none_without_rua))}
+	</p>
+{/if}
+
+<section class="figure">
 	<h2 class="chart-title">{tr.trendTitle}</h2>
 	<p class="chart-sub">{tr.legendShare}</p>
 	<Trend series={pub.national} scans={pub.scans} {lang} />
-	{#if pub.scans.length > 1 && munis.length}
-		<p class="trend-note text">{tr.trendSince(date(lang, pub.scans[0]), change.up, change.down)}</p>
-	{/if}
+	<p class="source">{tr.sourceLine}</p>
+</section>
+
+<section class="text">
+	<h2 class="chart-title">{tr.goalTitle}</h2>
+	<p class="prose">{tr.goalPara}</p>
+	<p><a href="{base}/{lang}/guide/">{tr.goalLink} →</a></p>
 </section>
 
 <section class="endnote text">
 	<h2 class="chart-title">{tr.aboutMethod}</h2>
-	<p>{tr.aboutBody(date(lang, scanDate), total)} {tr.firstStep(now[2], pct(lang, now[2] / known(now)))} <a href="{base}/{lang}/guide/">{tr.howToImprove}</a></p>
-	<p><a href="{base}/{lang}/method/">{tr.nav.method}</a> · <a href={ISSUES} rel="noopener">{tr.footerCorrections}</a></p>
+	<p>{tr.methodNote(total)}</p>
+	<p><a href="{base}/{lang}/method/">{tr.nav.method}</a> · <a href="{base}/{lang}/method/#corrections">{tr.footerCorrections}</a></p>
 	{#if !data.muniPaths}
 		<p class="muted">{tr.cantonDetailLater}</p>
 	{/if}
@@ -195,19 +207,23 @@
 	.dek {
 		margin: 0 0 0.9rem;
 	}
-	.byline {
-		font-size: 0.875rem;
-		color: var(--muted);
-		margin: 0;
-	}
-	.byline a {
-		color: var(--muted);
-	}
 	section {
-		margin: 3.5rem 0 0;
+		margin: 2.5rem 0 0;
+	}
+	.figure {
+		margin-top: 2.5rem;
 	}
 	.national {
 		margin-top: 2rem;
+	}
+	.prose {
+		font-family: var(--serif);
+		font-size: 1.125rem;
+		line-height: 1.6;
+		margin: 2.5rem 0 0;
+	}
+	section .prose {
+		margin-top: 0.4rem;
 	}
 	.map-box {
 		max-width: 60rem;
@@ -217,9 +233,6 @@
 		margin: 0.4rem 0 0;
 		font-size: 0.94rem;
 		max-width: none;
-	}
-	.trend-note {
-		margin: 0.6rem 0 0;
 	}
 	.table-view {
 		margin-top: 1.2rem;
