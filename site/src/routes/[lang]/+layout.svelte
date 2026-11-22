@@ -4,6 +4,7 @@
 	import { langs, langNames, t } from '$lib/i18n';
 	import { data as pub, latest } from '$lib/data';
 	import { date } from '$lib/i18n';
+	import { SITE } from '$lib/site';
 
 	let { data, children } = $props();
 	const lang = $derived(data.lang);
@@ -14,7 +15,22 @@
 	const here = (p: string) => page.url.pathname === `${base}/${lang}/${p}`;
 	// The byline names Marcan once; that word becomes the link.
 	const byline = $derived(tr.footerBuilt.split(/Marcan(.*)/s));
+	// This page's path below the language, for canonical and alternate links.
+	const rest = $derived(page.url.pathname.slice(`${base}/${lang}/`.length));
+	const ogLocale = { de: 'de_CH', fr: 'fr_CH', it: 'it_CH', en: 'en_GB' };
 </script>
+
+<svelte:head>
+	<link rel="canonical" href="{SITE}/{lang}/{rest}" />
+	{#each langs as l}
+		<link rel="alternate" hreflang={l} href="{SITE}/{l}/{rest}" />
+	{/each}
+	<link rel="alternate" hreflang="x-default" href="{SITE}/de/{rest}" />
+	<meta property="og:site_name" content={tr.site} />
+	<meta property="og:type" content="website" />
+	<meta property="og:locale" content={ogLocale[lang]} />
+	<meta property="og:url" content="{SITE}/{lang}/{rest}" />
+</svelte:head>
 
 <header class="top">
 	<div class="wrap bar">

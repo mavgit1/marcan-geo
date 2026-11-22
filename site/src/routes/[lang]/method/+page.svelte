@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Meta from '$lib/Meta.svelte';
 	import { method } from '$lib/content';
 	import { data as pub } from '$lib/data';
 	import { t, date } from '$lib/i18n';
@@ -9,9 +10,7 @@
 	const tr = $derived(t(data.lang));
 </script>
 
-<svelte:head>
-	<title>{m.title} · {tr.site}</title>
-</svelte:head>
+<Meta title="{m.title} · {tr.site}" description={m.sections[0].body[0].replace(/<[^>]+>/g, '')} />
 
 <h1>{m.title}</h1>
 

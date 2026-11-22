@@ -75,7 +75,7 @@ export const guide: Record<Lang, Guide> = {
 		tools: [
 			{ label: 'Gehostet, kostenlos', html: `${A(CLOUDFLARE, 'Cloudflare DMARC Management')} (wenn Ihr DNS bei Cloudflare liegt); ${A(POSTMARK, 'Postmark DMARC Digests')} (wöchentliche Zusammenfassung per Mail).` },
 			{ label: 'Gehostet, mit Support', html: `kommerzielle Dienste wie ${A(DMARCIAN, 'dmarcian')}.` },
-			{ label: 'Selbst betrieben, Open Source', html: `${A(PARSEDMARC, 'parsedmarc')} (mit Elasticsearch/OpenSearch oder Splunk); ${A(MARCAN, 'Marcan')} (ein einziger Container; vom Autor dieser Website).` },
+			{ label: 'Selbst betrieben, Open Source', html: `${A(PARSEDMARC, 'parsedmarc')} (mit Elasticsearch/OpenSearch oder Splunk); <strong>${A(MARCAN, 'Marcan')}</strong> (ein einziger Container; vom Autor dieser Website).` },
 			{ label: 'Zuerst beim IT-Dienstleister fragen', html: `Vielleicht betreibt er schon eines für alle seine Gemeinden.` }
 		]
 	},
@@ -102,7 +102,7 @@ export const guide: Record<Lang, Guide> = {
 		tools: [
 			{ label: 'Hébergé, gratuit', html: `${A(CLOUDFLARE, 'Cloudflare DMARC Management')} (si votre DNS est chez Cloudflare) ; ${A(POSTMARK, 'Postmark DMARC Digests')} (résumé hebdomadaire par e-mail).` },
 			{ label: 'Hébergé, avec support', html: `services commerciaux comme ${A(DMARCIAN, 'dmarcian')}.` },
-			{ label: 'Auto-hébergé, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (avec Elasticsearch/OpenSearch ou Splunk) ; ${A(MARCAN, 'Marcan')} (un seul conteneur ; développé par l’auteur de ce site).` },
+			{ label: 'Auto-hébergé, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (avec Elasticsearch/OpenSearch ou Splunk) ; <strong>${A(MARCAN, 'Marcan')}</strong> (un seul conteneur ; développé par l’auteur de ce site).` },
 			{ label: 'Demandez d’abord à votre prestataire informatique', html: `il en exploite peut-être déjà un pour toutes ses communes.` }
 		]
 	},
@@ -129,7 +129,7 @@ export const guide: Record<Lang, Guide> = {
 		tools: [
 			{ label: 'Ospitato, gratuito', html: `${A(CLOUDFLARE, 'Cloudflare DMARC Management')} (se il DNS è su Cloudflare); ${A(POSTMARK, 'Postmark DMARC Digests')} (riepilogo settimanale per e-mail).` },
 			{ label: 'Ospitato, con supporto', html: `servizi commerciali come ${A(DMARCIAN, 'dmarcian')}.` },
-			{ label: 'Self-hosted, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (con Elasticsearch/OpenSearch o Splunk); ${A(MARCAN, 'Marcan')} (un solo container; sviluppato dall’autore di questo sito).` },
+			{ label: 'Self-hosted, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (con Elasticsearch/OpenSearch o Splunk); <strong>${A(MARCAN, 'Marcan')}</strong> (un solo container; sviluppato dall’autore di questo sito).` },
 			{ label: 'Chiedete prima al vostro fornitore IT', html: `forse ne gestisce già uno per tutti i suoi comuni.` }
 		]
 	},
@@ -156,7 +156,7 @@ export const guide: Record<Lang, Guide> = {
 		tools: [
 			{ label: 'Hosted, free', html: `${A(CLOUDFLARE, 'Cloudflare DMARC Management')} (if your DNS is at Cloudflare); ${A(POSTMARK, 'Postmark DMARC Digests')} (a weekly summary by email).` },
 			{ label: 'Hosted, with support', html: `commercial services such as ${A(DMARCIAN, 'dmarcian')}.` },
-			{ label: 'Self-hosted, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (with Elasticsearch/OpenSearch or Splunk); ${A(MARCAN, 'Marcan')} (a single container; built by the author of this site).` },
+			{ label: 'Self-hosted, open source', html: `${A(PARSEDMARC, 'parsedmarc')} (with Elasticsearch/OpenSearch or Splunk); <strong>${A(MARCAN, 'Marcan')}</strong> (a single container; built by the author of this site).` },
 			{ label: 'Ask your IT provider first', html: `it may already run one for all its municipalities.` }
 		]
 	}

@@ -4,9 +4,11 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
 	kit: {
 		adapter: adapter({ strict: true }),
-		// GitHub Pages serves the project under /marcan-geo; the workflow sets it.
+		// Served at the root of its own domain; BASE_PATH stays for a subpath.
 		paths: { base: process.env.BASE_PATH ?? '' },
 		prerender: {
+			// Files that no page links to.
+			entries: ['*', '/sitemap.xml', '/robots.txt', '/llms.txt', '/data/public.json'],
 			handleHttpError: 'fail',
 			handleMissingId: 'fail',
 			// Municipality pages exist only at export level 1; any other

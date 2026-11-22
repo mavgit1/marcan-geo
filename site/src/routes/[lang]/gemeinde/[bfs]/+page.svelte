@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Meta from '$lib/Meta.svelte';
 	import { base } from '$app/paths';
 	import { data as pub, latest, enforcing, cantonByCode } from '$lib/data';
 	import { t, date, pct, cantonName } from '$lib/i18n';
@@ -14,9 +15,7 @@
 	const deciding = $derived(m.domains.filter((d) => d.status === m.status).length === 1 ? m.domains.find((d) => d.status === m.status) : undefined);
 </script>
 
-<svelte:head>
-	<title>{m.name} · {tr.site}</title>
-</svelte:head>
+<Meta title="{m.name}: {tr.status[m.status]} · {tr.site}" description="{mail ? tr.sendsFrom(m.name, mail.domain) : ''} {tr.status[m.status]}. {tr.explain[m.status]}" />
 
 <div class="text">
 	<p><a href="{base}/{lang}/kanton/{m.canton.toLowerCase()}/">← {cantonName(lang, m.canton)}</a></p>

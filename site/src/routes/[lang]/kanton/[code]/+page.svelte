@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Meta from '$lib/Meta.svelte';
 	import { base } from '$app/paths';
 	import Map, { type Shape } from '$lib/Map.svelte';
 	import StatusBar from '$lib/StatusBar.svelte';
@@ -38,9 +39,7 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{name} · {tr.site}</title>
-</svelte:head>
+<Meta title="{name} · {tr.site}" description="{tr.cantonContext(name, pct(lang, enforcing(now)))} {tr.vsNational(pct(lang, national))}." />
 
 <p><a href="{base}/{lang}/">← {tr.backToOverview}</a></p>
 <p class="kicker">{tr.canton} · {tr.scanOf(date(lang, latest(pub.scans)))}</p>

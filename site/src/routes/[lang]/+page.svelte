@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Meta from '$lib/Meta.svelte';
+	import { SITE } from '$lib/site';
 	import { base } from '$app/paths';
 	import Map, { type Shape } from '$lib/Map.svelte';
 	import StatusBar from '$lib/StatusBar.svelte';
@@ -44,6 +46,26 @@
 			return acc;
 		},
 		{ up: 0, down: 0 }
+	);
+
+	// Structured data for search engines: the measurement as a Dataset.
+	// A data block, not a script, so the CSP does not apply to it.
+	const jsonLd = $derived(
+		`<script type="application/ld+json">${JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Dataset',
+			name: tr.site,
+			description: tr.tagline,
+			url: `${SITE}/${lang}/`,
+			inLanguage: lang,
+			isAccessibleForFree: true,
+			spatialCoverage: { '@type': 'Place', name: 'Switzerland' },
+			temporalCoverage: `${pub.scans[0]}/${scanDate}`,
+			dateModified: scanDate,
+			variableMeasured: 'DMARC policy of municipal mail domains',
+			creator: { '@type': 'Organization', name: 'Kaitiaki', url: 'https://kaitiaki.tech' },
+			distribution: { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${SITE}/data/public.json` }
+		}).replace(/</g, '\\u003c')}</` + `script>`
 	);
 
 	let hover: string | null = $state(null);
@@ -92,9 +114,9 @@
 	});
 </script>
 
+<Meta title="{tr.title(share)} · {tr.site}" description={tr.lead(pctText(lang, share), known(now), cantonName(lang, top.code), pctText(lang, enforcing(latest(top.series))), cantonName(lang, bottom.code), pctText(lang, enforcing(latest(bottom.series))))} />
 <svelte:head>
-	<title>{tr.site}</title>
-	<meta name="description" content={tr.tagline} />
+	{@html jsonLd}
 </svelte:head>
 
 <header class="intro text">
