@@ -15,8 +15,6 @@
 	const now = $derived(latest(c.series));
 	const name = $derived(cantonName(lang, c.code));
 	const national = enforcing(latest(pub.national));
-	const ranked = [...pub.cantons].sort((a, b) => enforcing(latest(b.series)) - enforcing(latest(a.series)));
-	const rank = $derived(ranked.findIndex((k) => k.nr === c.nr) + 1);
 	const munis = $derived((pub.municipalities ?? []).filter((m) => m.canton === c.code).sort((a, b) => a.name.localeCompare(b.name, lang)));
 
 	const shapes: Shape[] = $derived.by(() => {
@@ -52,7 +50,7 @@
 	<div>
 		<p class="big">{pct(lang, enforcing(now))}</p>
 		<p class="muted">{tr.legendShare}</p>
-		<p class="compare">{tr.rank(rank, ranked.length)} · {tr.vsNational(pct(lang, national))} · {known(now)} {tr.municipalities}</p>
+		<p class="compare">{tr.vsNational(pct(lang, national))} · {known(now)} {tr.municipalities}</p>
 		{#if known(now) < 10}<p class="small muted">{tr.smallN}</p>{/if}
 		<StatusBar counts={now} {lang} />
 		<p><a href="{base}/{lang}/guide/">{tr.howToImprove} →</a></p>

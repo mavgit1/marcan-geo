@@ -34,11 +34,10 @@
 <h2>{g.toolsTitle}</h2>
 <p>{g.toolsIntro}</p>
 <ul class="tools">
-	{#each g.tools as tool}
-		<li><a href={tool.url} rel="noopener">{tool.name}</a>: {tool.desc}</li>
+	{#each g.tools as group}
+		<li><strong>{group.label}:</strong> {@html group.html}</li>
 	{/each}
 </ul>
-<p class="muted">{g.toolsNote}</p>
 
 <style>
 	.step {

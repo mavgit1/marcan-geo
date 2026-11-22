@@ -20,7 +20,7 @@ export interface Municipality {
 	/** The weakest of `domains`, which is what counts. */
 	status: StatusKey;
 	/** Mail domain first, then further domains (website, former names). */
-	domains: { domain: string; status: StatusKey; policy: string }[];
+	domains: { domain: string; status: StatusKey; policy: string; inherited?: string }[];
 	spf: string;
 	history: [number, StatusKey][];
 }
@@ -31,6 +31,8 @@ export interface PublicData {
 	statuses: StatusKey[];
 	scans: string[];
 	national: Counts[];
+	/** Per scan: rated "none" because of p=none without a report address. */
+	none_without_rua: number[];
 	cantons: Canton[];
 	municipalities?: Municipality[];
 }

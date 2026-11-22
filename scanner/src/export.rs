@@ -59,6 +59,10 @@ struct Domain {
     domain: String,
     status: String,
     policy: String,
+    /// The domain whose record applies when this one has none of its own
+    /// (e.g. ne.ch for commune.ne.ch).
+    #[serde(skip_serializing_if = "String::is_empty")]
+    inherited: String,
 }
 
 #[derive(Serialize)]
@@ -82,6 +86,8 @@ struct Public {
     statuses: [&'static str; 5],
     scans: Vec<String>,
     national: Vec<Counts>,
+    /// Per scan: municipalities rated "none" because of p=none without rua.
+    none_without_rua: Vec<u32>,
     cantons: Vec<Canton>,
     #[serde(skip_serializing_if = "Option::is_none")]
     municipalities: Option<Vec<Muni>>,
@@ -91,14 +97,19 @@ fn domains(c: &Classified) -> Vec<Domain> {
     let mut v = vec![];
     if !c.mail_domain.is_empty() {
         let status = if c.mail_status.is_empty() { c.status.clone() } else { c.mail_status.clone() };
-        v.push(Domain { domain: c.mail_domain.clone(), status, policy: policy(c) });
+        let inherited = if c.dmarc_found_at == "org" {
+            crate::domain::organizational_domain(&c.mail_domain).unwrap_or_default()
+        } else {
+            String::new()
+        };
+        v.push(Domain { domain: c.mail_domain.clone(), status, policy: policy(c), inherited });
     }
     for entry in c.also.split(';').filter(|e| !e.is_empty()) {
         let mut it = entry.splitn(3, '=');
         let (Some(domain), Some(status)) = (it.next(), it.next()) else { continue };
         let p = it.next().unwrap_or("");
         let policy = if p.is_empty() { String::new() } else { format!("p={p}") };
-        v.push(Domain { domain: domain.into(), status: status.into(), policy });
+        v.push(Domain { domain: domain.into(), status: status.into(), policy, inherited: String::new() });
     }
     v
 }
@@ -116,9 +127,6 @@ fn policy(c: &Classified) -> String {
     }
     if c.dmarc_testing {
         s += "; t=y";
-    }
-    if c.dmarc_found_at == "org" {
-        s += " (organizational domain)";
     }
     s
 }
@@ -141,6 +149,7 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
 
     let mut scans = vec![];
     let mut national = vec![];
+    let mut none_without_rua = vec![];
     let mut cantons: BTreeMap<u32, Canton> = BTreeMap::new();
     let mut munis: BTreeMap<u32, Muni> = BTreeMap::new();
     let mut version = 0;
@@ -148,12 +157,16 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
     for (i, dir) in scan_dirs.iter().enumerate() {
         scans.push(dir.file_name().context("scan name")?.to_string_lossy().into_owned());
         let mut total: Counts = [0; 5];
+        let mut bare = 0;
         let mut seen = std::collections::HashSet::new();
         for r in csv::Reader::from_path(dir.join("classified.csv"))?.deserialize() {
             let c: Classified = r?;
             version = c.classifier_version;
             let idx = STATUSES.iter().position(|s| *s == c.status).context("unknown status")?;
             total[idx] += 1;
+            if c.status == "none" && c.status_reason.contains("p=none without rua") {
+                bare += 1;
+            }
             let canton = cantons.entry(c.canton_nr).or_insert_with(|| Canton {
                 nr: c.canton_nr,
                 code: c.canton.clone(),
@@ -182,6 +195,7 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
             m.status = c.status.clone();
         }
         national.push(total);
+        none_without_rua.push(bare);
         for canton in cantons.values_mut() {
             canton.series.resize(i + 1, [0; 5]);
         }
@@ -211,6 +225,7 @@ pub fn run(scans_dir: &Path, config: &Path, out: &Path) -> Result<()> {
         statuses: STATUSES,
         scans,
         national,
+        none_without_rua,
         cantons: cantons.into_values().collect(),
         municipalities: (config.level >= 1).then(|| munis.into_values().collect()),
     };

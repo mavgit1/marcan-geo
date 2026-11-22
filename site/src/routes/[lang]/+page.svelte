@@ -34,6 +34,19 @@
 	// Table: share first after the name, so it stays visible on phones.
 	const sorted = [...pub.cantons].sort((a, b) => enforcing(latest(b.series)) - enforcing(latest(a.series)));
 
+	// Change since the first scan, from each municipality's status history.
+	const RANK = { blocked: 0, filtered: 1, monitoring: 2, none: 3, unknown: -1 } as const;
+	const change = munis.reduce(
+		(acc, m) => {
+			const [first, was] = m.history[0] ?? [];
+			if (first !== 0 || RANK[was] < 0 || RANK[m.status] < 0) return acc;
+			if (RANK[m.status] < RANK[was]) acc.up++;
+			if (RANK[m.status] > RANK[was]) acc.down++;
+			return acc;
+		},
+		{ up: 0, down: 0 }
+	);
+
 	let hover: string | null = $state(null);
 
 	const shapes: Shape[] = $derived.by(() => {
@@ -104,7 +117,7 @@
 
 <section class="national text">
 	<StatusBar counts={now} {lang} />
-	<p class="source">{tr.headlineSub(known(now), total)}.</p>
+	<p class="source">{tr.headlineSub(known(now), total)}. {tr.status.none}: {tr.noneSplit(latest(pub.none_without_rua))}.</p>
 </section>
 
 <section>
@@ -161,6 +174,9 @@
 	<h2 class="chart-title">{tr.trendTitle}</h2>
 	<p class="chart-sub">{tr.legendShare}</p>
 	<Trend series={pub.national} scans={pub.scans} {lang} />
+	{#if pub.scans.length > 1 && munis.length}
+		<p class="trend-note text">{tr.trendSince(date(lang, pub.scans[0]), change.up, change.down)}</p>
+	{/if}
 </section>
 
 <section class="endnote text">
@@ -201,6 +217,9 @@
 		margin: 0.4rem 0 0;
 		font-size: 0.94rem;
 		max-width: none;
+	}
+	.trend-note {
+		margin: 0.6rem 0 0;
 	}
 	.table-view {
 		margin-top: 1.2rem;

@@ -36,11 +36,12 @@
 
 <footer class="wrap foot muted">
 	<p>{tr.scanOf(date(lang, latest(pub.scans)))} · {tr.footerData}</p>
+	<p>{tr.footerBuilt}</p>
 	<p>
-		{tr.footerBuilt}
-		<a href="https://marcan.kaitiaki.tech/" rel="noopener">Marcan</a> ·
+		<a href="{base}/{lang}/method/">{tr.nav.method}</a> ·
 		<a href="https://github.com/mavgit1/marcan-geo" rel="noopener">Code</a> ·
-		<a href="https://github.com/mavgit1/marcan-geo/issues" rel="noopener">{tr.footerCorrections}</a>
+		<a href="{base}/{lang}/method/#corrections">{tr.footerCorrections}</a> ·
+		<a href="https://marcan.kaitiaki.tech/" rel="noopener">Marcan</a>
 	</p>
 </footer>
 

@@ -10,6 +10,8 @@
 	const canton = $derived(cantonByCode(m.canton));
 	const mail = $derived(m.domains[0]);
 	const others = $derived(m.domains.slice(1));
+	// The domain that decides the rating, if exactly one has the final status.
+	const deciding = $derived(m.domains.filter((d) => d.status === m.status).length === 1 ? m.domains.find((d) => d.status === m.status) : undefined);
 </script>
 
 <svelte:head>
@@ -22,6 +24,9 @@
 	<h1>{m.name}</h1>
 
 	<p class="status"><span class="swatch {m.status}"></span>{tr.status[m.status]}</p>
+	{#if others.length && deciding}
+		<p class="decides">{tr.deciding}: <code>{deciding.domain}</code></p>
+	{/if}
 
 	{#if mail}
 		<p class="lead">
@@ -33,6 +38,9 @@
 				{tr.explain[mail.status]}
 			{/if}
 		</p>
+		{#if mail.inherited}
+			<p class="muted">{tr.inherited(mail.inherited)}</p>
+		{/if}
 	{:else}
 		<p class="lead">{tr.explain.unknown}</p>
 	{/if}
@@ -95,6 +103,11 @@
 		gap: 0.2rem 1rem;
 		padding: 0.35rem 0;
 		border-bottom: 1px solid var(--line);
+	}
+	.decides {
+		font-size: 0.94rem;
+		color: var(--muted);
+		margin: -0.3rem 0 0.6rem;
 	}
 	.context {
 		margin-top: 1.6rem;

@@ -15,8 +15,8 @@ Site: https://mavgit1.github.io/marcan-geo/
    evidence that it differs. Further domains of a municipality (such as the
    website's) are scanned too, and the least protected one counts.
 2. **Scan.** For each domain, MX, SPF and DMARC records are queried through
-   Google Public DNS and Quad9 at a limited rate. No mail is sent and no
-   connection is made to municipal servers.
+   Google Public DNS and Quad9 at a limited rate. We query public DNS
+   resolvers only: no mail is sent and no municipal server is contacted by us.
 3. **Classification.** Each municipality gets one status from the raw answers.
 4. **Export and site.** Totals per canton and over time go into a static site.
 
@@ -24,10 +24,10 @@ Site: https://mavgit1.github.io/marcan-geo/
 
 | Status | Rule |
 |---|---|
-| Spoofing blocked | `p=reject`, no `pct` below 100, no `t=y` |
-| Spoofing filtered | `p=quarantine`, no `pct` below 100, no `t=y` |
+| Reject policy | `p=reject`, no `pct` below 100, no `t=y` |
+| Quarantine policy | `p=quarantine`, no `pct` below 100, no `t=y` |
 | Monitoring only | `p=none` with a report address (`rua`), or any policy with `pct` below 100 or `t=y` |
-| No DMARC | no DMARC record, an invalid one, or `p=none` without `rua` (protects nothing, reports to nobody) |
+| No effective DMARC | no DMARC record, an invalid one, or `p=none` without `rua` (asks for nothing, reports to nobody) |
 | No data | no known website or domain, or a DNS error |
 
 A domain that receives no mail still needs DMARC: anyone can send mail in its
@@ -55,7 +55,10 @@ Policy, no cookies, no analytics.
 
 ## Corrections
 
-Is your municipality's mail domain wrong? Please open an issue.
+Is your municipality's mail domain wrong, or has a record changed? Write to
+research@kaitiaki.tech or open an issue. Emails are not published. We answer
+within 5 working days; confirmed corrections are rescanned and published
+within 10 working days and listed in the correction log on the method page.
 
 ## Sources
 
