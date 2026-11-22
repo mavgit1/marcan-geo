@@ -13,6 +13,13 @@
 	const others = $derived(m.domains.slice(1));
 	// Status at every scan: history lists only the changes.
 	const statusAt = (i: number) => m.history.filter(([at]) => at <= i).at(-1)?.[1];
+	// Lower is better; unknown is not compared.
+	const RANK: Record<string, number> = { blocked: 0, filtered: 1, monitoring: 2, none: 3 };
+	const change = (i: number) => {
+		const [a, b] = [statusAt(i - 1), statusAt(i)];
+		if (i === 0 || !a || !b || !(a in RANK) || !(b in RANK) || a === b) return '';
+		return RANK[b] < RANK[a] ? tr.better : tr.worse;
+	};
 	// Mail servers as host names, without priority and trailing dot.
 	const mxText = (mx: string[]) =>
 		mx.length === 1 && mx[0].trim().startsWith('0 .')
@@ -50,6 +57,20 @@
 	{:else}
 		<p class="lead">{tr.explain.unknown}</p>
 	{/if}
+
+	<h2 class="chart-title">{tr.history}</h2>
+	<ol class="timeline">
+		{#each pub.scans as scan, i}
+			{@const s = statusAt(i)}
+			{#if s}
+				<li>
+					<span class="when">{date(lang, scan)}</span>
+					<span><span class="swatch {s}"></span>{tr.status[s]}</span>
+					{#if change(i)}<span class="chg" class:up={change(i) === tr.better}>{change(i)}</span>{/if}
+				</li>
+			{/if}
+		{/each}
+	</ol>
 
 	{#if others.length}
 		<h2 class="chart-title">{tr.otherDomains}</h2>
@@ -89,9 +110,6 @@
 				<dd>{d.spf.join(' ') || tr.noRecord}</dd>
 			</dl>
 		{/each}
-		<p class="note">
-			{tr.history}: {#each pub.scans as scan, i}{@const s = statusAt(i)}{#if s}{i ? ' · ' : ''}{date(lang, scan)}: {tr.status[s]}{/if}{/each}
-		</p>
 		<p class="note">{tr.queried(date(lang, latest(pub.scans)))} {tr.dkimNote}</p>
 	</details>
 </div>
@@ -164,6 +182,31 @@
 	}
 	.rec .muted {
 		font-family: inherit;
+	}
+	.timeline {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 1.6rem;
+	}
+	.timeline li {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.2rem 1rem;
+		padding: 0.3rem 0;
+		border-bottom: 1px solid var(--line);
+	}
+	.when {
+		min-width: 11rem;
+		color: var(--muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.chg {
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+	.chg.up {
+		color: var(--fg);
+		font-weight: 650;
 	}
 	.note {
 		font-size: 0.85rem;
