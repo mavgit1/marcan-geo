@@ -13,6 +13,11 @@
 	const others = $derived(m.domains.slice(1));
 	// Status at every scan: history lists only the changes.
 	const statusAt = (i: number) => m.history.filter(([at]) => at <= i).at(-1)?.[1];
+	// Mail servers as host names, without priority and trailing dot.
+	const mxText = (mx: string[]) =>
+		mx.length === 1 && mx[0].trim().startsWith('0 .')
+			? tr.nullMx
+			: mx.map((r) => r.split(' ').pop()!.replace(/\.$/, '')).join(', ') || tr.noMx;
 	// The domain that decides the rating, if exactly one has the final status.
 	const deciding = $derived(m.domains.filter((d) => d.status === m.status).length === 1 ? m.domains.find((d) => d.status === m.status) : undefined);
 </script>
@@ -69,50 +74,25 @@
 
 	<details>
 		<summary>{tr.techDetails}</summary>
-		{#each data.details as d, k}
-			<h3><code>{d.domain}</code></h3>
-			<dl>
-				<dt>{tr.dmarcRecord}</dt>
+		{#each data.details as d}
+			<dl class="rec">
+				<dt class="dom">{d.domain}</dt>
+				<dd class="dom"></dd>
+				<dt>DMARC</dt>
 				<dd>
-					{#if d.dmarc.length}
-						{#each d.dmarc as r}<pre>{r}</pre>{/each}
-						<span class="muted">{d.dmarc_at === `_dmarc.${d.domain}` ? tr.foundAt : tr.inheritedFrom} <code>{d.dmarc_at}</code></span>
-					{:else}
-						{tr.noRecord}
-					{/if}
+					{d.dmarc.join(' ') || tr.noRecord}
+					{#if d.dmarc.length && d.dmarc_at !== `_dmarc.${d.domain}`}<span class="muted">({tr.inheritedFrom} {d.dmarc_at.slice(7)})</span>{/if}
 				</dd>
-				<dt>{tr.mxLabel}</dt>
-				<dd>
-					{#if d.mx.length === 1 && d.mx[0].trim().startsWith('0 .')}
-						{tr.nullMx}
-					{:else if d.mx.length}
-						{#each d.mx as r}<div><code>{r}</code></div>{/each}
-					{:else}
-						{tr.noMx}
-					{/if}
-				</dd>
-				<dt>{tr.spfRecord}</dt>
-				<dd>
-					{#if d.spf.length}
-						{#each d.spf as r}<pre>{r}</pre>{/each}
-						{#if k === 0}<span class="muted">{tr.spfValues[m.spf] ?? m.spf}</span>{/if}
-					{:else}
-						{tr.noRecord}
-					{/if}
-				</dd>
+				<dt>MX</dt>
+				<dd>{mxText(d.mx)}</dd>
+				<dt>SPF</dt>
+				<dd>{d.spf.join(' ') || tr.noRecord}</dd>
 			</dl>
 		{/each}
-		<p class="muted small">{tr.dkimNote}</p>
-		<h3>{tr.history}</h3>
-		<ul class="history">
-			{#each pub.scans as scan, i}
-				{@const s = statusAt(i)}
-				{#if s}
-					<li><span class="swatch {s}"></span>{date(lang, scan)}: {tr.status[s]}</li>
-				{/if}
-			{/each}
-		</ul>
-		<p class="muted small">{tr.queried(date(lang, latest(pub.scans)))}</p>
+		<p class="note">
+			{tr.history}: {#each pub.scans as scan, i}{@const s = statusAt(i)}{#if s}{i ? ' · ' : ''}{date(lang, scan)}: {tr.status[s]}{/if}{/each}
+		</p>
+		<p class="note">{tr.queried(date(lang, latest(pub.scans)))} {tr.dkimNote}</p>
 	</details>
 </div>
 
@@ -164,21 +144,31 @@
 	dt {
 		color: var(--muted);
 	}
-	details h3 {
-		font-size: 1rem;
-		margin: 1.2rem 0 0.4rem;
+	.rec {
+		grid-template-columns: 3.5rem 1fr;
+		gap: 0.15rem 0.8rem;
+		margin: 1rem 0 0;
 	}
-	pre {
+	.rec dd {
 		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-		font-size: 0.85rem;
-		white-space: pre-wrap;
+		font-size: 0.82rem;
 		overflow-wrap: anywhere;
-		margin: 0 0 0.2rem;
 	}
-	.history {
-		list-style: none;
-		padding: 0;
-		margin: 0;
+	.rec dt.dom {
+		grid-column: 1 / -1;
+		color: var(--fg);
+		font-weight: 650;
+	}
+	.rec dd.dom {
+		display: none;
+	}
+	.rec .muted {
+		font-family: inherit;
+	}
+	.note {
+		font-size: 0.85rem;
+		color: var(--muted);
+		margin: 0.8rem 0 0;
 	}
 	.small {
 		font-size: 0.85rem;

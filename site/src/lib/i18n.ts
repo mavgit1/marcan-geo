@@ -214,11 +214,11 @@ const de: Dict = {
 	foundAt: 'unter',
 	inheritedFrom: 'übernommen von',
 	mxLabel: 'Mailserver (MX)',
-	noMx: 'keiner; die Domain empfängt keine Mails',
-	nullMx: 'Null-MX; die Domain nimmt ausdrücklich keine Mails an',
+	noMx: 'keine',
+	nullMx: 'Null-MX (nimmt keine Mails an)',
 	spfRecord: 'SPF-Eintrag',
-	dkimNote: 'DKIM wird nicht geprüft: Die Namen der Schlüssel (Selektoren) sind nicht öffentlich abrufbar.',
-	queried: (d) => `Abgefragt am ${d} über Google Public DNS, verglichen mit Quad9. Die Einträge sind öffentlich und lassen sich mit jedem DNS-Werkzeug nachprüfen.`,
+	dkimNote: 'DKIM ist nicht erfasst: Die Schlüssel lassen sich nur abfragen, wenn man ihren Namen kennt.',
+	queried: (d) => `Öffentliche DNS-Einträge, Stand ${d}.`,
 };
 
 const fr: Dict = {
@@ -323,11 +323,11 @@ const fr: Dict = {
 	foundAt: 'sous',
 	inheritedFrom: 'repris de',
 	mxLabel: 'Serveurs de messagerie (MX)',
-	noMx: 'aucun ; le domaine ne reçoit pas d’e-mails',
-	nullMx: 'MX nul ; le domaine refuse explicitement les e-mails',
+	noMx: 'aucun',
+	nullMx: 'MX nul (n’accepte pas d’e-mails)',
 	spfRecord: 'Enregistrement SPF',
-	dkimNote: 'DKIM n’est pas vérifié : les noms des clés (sélecteurs) ne sont pas consultables publiquement.',
-	queried: (d) => `Interrogé le ${d} via Google Public DNS, comparé avec Quad9. Les enregistrements sont publics et vérifiables avec tout outil DNS.`,
+	dkimNote: 'DKIM n’est pas relevé : les clés ne peuvent être interrogées que si l’on connaît leur nom.',
+	queried: (d) => `Enregistrements DNS publics, état au ${d}.`,
 };
 
 const it: Dict = {
@@ -432,11 +432,11 @@ const it: Dict = {
 	foundAt: 'sotto',
 	inheritedFrom: 'ripreso da',
 	mxLabel: 'Server di posta (MX)',
-	noMx: 'nessuno; il dominio non riceve e-mail',
-	nullMx: 'MX nullo; il dominio rifiuta esplicitamente le e-mail',
+	noMx: 'nessuno',
+	nullMx: 'MX nullo (non accetta e-mail)',
 	spfRecord: 'Record SPF',
-	dkimNote: 'DKIM non viene verificato: i nomi delle chiavi (selettori) non sono consultabili pubblicamente.',
-	queried: (d) => `Interrogato il ${d} tramite Google Public DNS, confrontato con Quad9. I record sono pubblici e verificabili con qualsiasi strumento DNS.`,
+	dkimNote: 'DKIM non è rilevato: le chiavi si possono interrogare solo conoscendone il nome.',
+	queried: (d) => `Record DNS pubblici, stato al ${d}.`,
 };
 
 const en: Dict = {
@@ -541,11 +541,11 @@ const en: Dict = {
 	foundAt: 'at',
 	inheritedFrom: 'inherited from',
 	mxLabel: 'Mail servers (MX)',
-	noMx: 'none; the domain receives no mail',
-	nullMx: 'null MX; the domain explicitly accepts no mail',
+	noMx: 'none',
+	nullMx: 'null MX (accepts no mail)',
 	spfRecord: 'SPF record',
-	dkimNote: 'DKIM is not checked: the key names (selectors) cannot be looked up publicly.',
-	queried: (d) => `Queried on ${d} through Google Public DNS, compared with Quad9. The records are public and can be checked with any DNS tool.`,
+	dkimNote: 'DKIM is not covered: its keys can only be looked up if you know their names.',
+	queried: (d) => `Public DNS records as of ${d}.`,
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
