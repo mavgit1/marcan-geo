@@ -56,7 +56,7 @@ export const guide: Record<Lang, Guide> = {
 			'Für Domains, die Mails verschicken, geht der Weg in Stufen. Jede Stufe ist ein einzelner DNS-Eintrag unter <code>_dmarc.ihre-domain.ch</code>.'
 		],
 		steps: [
-			{ id: 'none', title: 'Kein DMARC: Überwachung einschalten', body: ['Veröffentlichen Sie einen DMARC-Eintrag mit <code>p=none</code> und einer Adresse für Berichte (<code>rua</code>). An der Zustellung ändert sich nichts; Sie erhalten ab jetzt täglich Berichte der grossen Mailanbieter.'], record: REC_NONE },
+			{ id: 'none', title: 'Kein DMARC: Überwachung einschalten', body: ['Veröffentlichen Sie einen DMARC-Eintrag mit <code>p=none</code> und einer Adresse für Berichte (<code>rua</code>). An der Zustellung ändert sich nichts; Sie erhalten ab jetzt täglich Berichte der grossen Mailanbieter.', 'Ein Eintrag mit <code>p=none</code> ohne <code>rua</code> zählt hier als «Kein DMARC»: Er schützt nicht, und niemand erhält Berichte.'], record: REC_NONE },
 			{ id: 'monitoring', title: 'Nur Überwachung: Berichte auswerten, dann durchsetzen', body: ['Fehlt <code>rua</code>, ergänzen Sie es zuerst: Ohne Berichte überwacht niemand etwas.', 'Werten Sie die Berichte zwei bis vier Wochen aus. Prüfen Sie, dass alle legitimen Absender (Newsletter, Gemeindesoftware, E-Rechnung, IT-Dienstleister) SPF oder DKIM für Ihre Domain bestehen. Danach auf <code>p=quarantine</code> wechseln.', '<code>pct</code> ist veraltet und wurde aus dem neuen DMARC-Standard entfernt. Setzen Sie eine Richtlinie ganz oder gar nicht; Einträge mit <code>pct</code> unter 100 oder <code>t=y</code> zählen hier als Überwachung.'], record: REC_Q },
 			{ id: 'filtered', title: 'Gefiltert: auf Abweisen umstellen', body: ['Zeigen die Berichte, dass keine legitime Mail mehr betroffen ist, wechseln Sie auf <code>p=reject</code>. Gefälschte Mails werden dann gar nicht mehr zugestellt.'], record: REC_R },
 			{ id: 'blocked', title: 'Blockiert: dranbleiben', body: ['Lassen Sie die Berichte weiterlaufen und prüfen Sie sie, wenn ein neuer Dienst in Ihrem Namen Mails verschicken soll. Sinnvolle nächste Schritte sind MTA-STS und TLS-RPT für verschlüsselte Zustellung.'] },
@@ -84,7 +84,7 @@ export const guide: Record<Lang, Guide> = {
 			'Pour les domaines qui envoient des e-mails, la démarche se fait par étapes. Chaque étape est un seul enregistrement DNS sous <code>_dmarc.votre-domaine.ch</code>.'
 		],
 		steps: [
-			{ id: 'none', title: 'Pas de DMARC : activer la surveillance', body: ['Publiez un enregistrement DMARC avec <code>p=none</code> et une adresse pour les rapports (<code>rua</code>). La distribution ne change pas ; vous recevez dès lors des rapports quotidiens des grands fournisseurs de messagerie.'], record: REC_NONE },
+			{ id: 'none', title: 'Pas de DMARC : activer la surveillance', body: ['Publiez un enregistrement DMARC avec <code>p=none</code> et une adresse pour les rapports (<code>rua</code>). La distribution ne change pas ; vous recevez dès lors des rapports quotidiens des grands fournisseurs de messagerie.', 'Un enregistrement <code>p=none</code> sans <code>rua</code> compte ici comme « Pas de DMARC » : il ne protège pas et personne ne reçoit de rapports.'], record: REC_NONE },
 			{ id: 'monitoring', title: 'Surveillance seule : analyser les rapports, puis appliquer', body: ['S’il manque <code>rua</code>, ajoutez-le d’abord : sans rapports, personne ne surveille rien.', 'Analysez les rapports pendant deux à quatre semaines. Vérifiez que tous les expéditeurs légitimes (newsletter, logiciel communal, facturation électronique, prestataire informatique) passent SPF ou DKIM pour votre domaine. Passez ensuite à <code>p=quarantine</code>.', '<code>pct</code> est obsolète et a été retiré de la nouvelle norme DMARC. Appliquez une politique entièrement ou pas du tout ; les enregistrements avec <code>pct</code> inférieur à 100 ou <code>t=y</code> comptent ici comme surveillance.'], record: REC_Q },
 			{ id: 'filtered', title: 'Filtrée : passer au refus', body: ['Si les rapports montrent qu’aucun e-mail légitime n’est plus concerné, passez à <code>p=reject</code>. Les e-mails usurpés ne sont alors plus distribués du tout.'], record: REC_R },
 			{ id: 'blocked', title: 'Bloquée : rester attentif', body: ['Gardez les rapports actifs et consultez-les lorsqu’un nouveau service doit envoyer des e-mails en votre nom. MTA-STS et TLS-RPT sont de bonnes étapes suivantes pour une distribution chiffrée.'] },
@@ -112,7 +112,7 @@ export const guide: Record<Lang, Guide> = {
 			'Per i domini che inviano e-mail si procede a tappe. Ogni tappa è un solo record DNS sotto <code>_dmarc.vostro-dominio.ch</code>.'
 		],
 		steps: [
-			{ id: 'none', title: 'Nessun DMARC: attivare il monitoraggio', body: ['Pubblicate un record DMARC con <code>p=none</code> e un indirizzo per i rapporti (<code>rua</code>). La consegna non cambia; da subito ricevete rapporti giornalieri dai grandi provider di posta.'], record: REC_NONE },
+			{ id: 'none', title: 'Nessun DMARC: attivare il monitoraggio', body: ['Pubblicate un record DMARC con <code>p=none</code> e un indirizzo per i rapporti (<code>rua</code>). La consegna non cambia; da subito ricevete rapporti giornalieri dai grandi provider di posta.', 'Un record <code>p=none</code> senza <code>rua</code> conta qui come «Nessun DMARC»: non protegge e nessuno riceve rapporti.'], record: REC_NONE },
 			{ id: 'monitoring', title: 'Solo monitoraggio: analizzare i rapporti, poi applicare', body: ['Se manca <code>rua</code>, aggiungetelo prima: senza rapporti nessuno monitora nulla.', 'Analizzate i rapporti per due-quattro settimane. Verificate che tutti i mittenti legittimi (newsletter, software comunale, fatturazione elettronica, fornitore IT) superino SPF o DKIM per il vostro dominio. Poi passate a <code>p=quarantine</code>.', '<code>pct</code> è obsoleto ed è stato rimosso dal nuovo standard DMARC. Applicate una politica per intero o per niente; i record con <code>pct</code> inferiore a 100 o <code>t=y</code> contano qui come monitoraggio.'], record: REC_Q },
 			{ id: 'filtered', title: 'Filtrate: passare al rifiuto', body: ['Quando i rapporti mostrano che nessuna e-mail legittima è più interessata, passate a <code>p=reject</code>. Le e-mail falsificate non vengono più consegnate.'], record: REC_R },
 			{ id: 'blocked', title: 'Bloccate: restare vigili', body: ['Mantenete attivi i rapporti e controllateli quando un nuovo servizio deve inviare e-mail a vostro nome. MTA-STS e TLS-RPT sono buoni passi successivi per una consegna cifrata.'] },
@@ -140,7 +140,7 @@ export const guide: Record<Lang, Guide> = {
 			'For domains that do send mail, you get there in steps. Each step is a single DNS record at <code>_dmarc.your-domain.ch</code>.'
 		],
 		steps: [
-			{ id: 'none', title: 'No DMARC: turn on monitoring', body: ['Publish a DMARC record with <code>p=none</code> and an address for reports (<code>rua</code>). Delivery does not change; from now on you get daily reports from the large mail providers.'], record: REC_NONE },
+			{ id: 'none', title: 'No DMARC: turn on monitoring', body: ['Publish a DMARC record with <code>p=none</code> and an address for reports (<code>rua</code>). Delivery does not change; from now on you get daily reports from the large mail providers.', 'A record with <code>p=none</code> but no <code>rua</code> counts as “No DMARC” here: it protects nothing and nobody receives reports.'], record: REC_NONE },
 			{ id: 'monitoring', title: 'Monitoring only: read the reports, then enforce', body: ['If <code>rua</code> is missing, add it first: without reports, nobody is monitoring anything.', 'Read the reports for two to four weeks. Check that every legitimate sender (newsletter tool, municipal software, e-billing, IT provider) passes SPF or DKIM for your domain. Then move to <code>p=quarantine</code>.', '<code>pct</code> is obsolete and was removed from the new DMARC standard. Enforce a policy fully or not at all; records with <code>pct</code> below 100 or <code>t=y</code> count as monitoring here.'], record: REC_Q },
 			{ id: 'filtered', title: 'Filtered: move to reject', body: ['When the reports show that no legitimate mail is affected any more, move to <code>p=reject</code>. Spoofed mail is then not delivered at all.'], record: REC_R },
 			{ id: 'blocked', title: 'Blocked: keep it that way', body: ['Keep the reports coming and check them whenever a new service should send mail in your name. Good next steps are MTA-STS and TLS-RPT for encrypted delivery.'] },
@@ -174,8 +174,8 @@ export const method: Record<Lang, Method> = {
 		rules: [
 			['blocked', '<code>p=reject</code>, ohne <code>pct</code> unter 100 und ohne <code>t=y</code>'],
 			['filtered', '<code>p=quarantine</code>, ohne <code>pct</code> unter 100 und ohne <code>t=y</code>'],
-			['monitoring', '<code>p=none</code>, oder eine Richtlinie mit <code>pct</code> unter 100 oder <code>t=y</code>'],
-			['none', 'kein DMARC-Eintrag oder ein ungültiger (z. B. mehrere Einträge)'],
+			['monitoring', '<code>p=none</code> mit Berichtsadresse (<code>rua</code>), oder eine Richtlinie mit <code>pct</code> unter 100 oder <code>t=y</code>'],
+			['none', 'kein DMARC-Eintrag, ein ungültiger (z. B. mehrere Einträge), oder <code>p=none</code> ohne Berichtsadresse: Ein solcher Eintrag schützt nicht, und niemand erhält Berichte'],
 			['unknown', 'keine Website bekannt, die Domain existiert nicht, oder ein DNS-Fehler. Domains ohne MX werden nach ihrem DMARC-Eintrag eingestuft wie alle anderen.']
 		]
 	},
@@ -191,8 +191,8 @@ export const method: Record<Lang, Method> = {
 		rules: [
 			['blocked', '<code>p=reject</code>, sans <code>pct</code> inférieur à 100 ni <code>t=y</code>'],
 			['filtered', '<code>p=quarantine</code>, sans <code>pct</code> inférieur à 100 ni <code>t=y</code>'],
-			['monitoring', '<code>p=none</code>, ou une politique avec <code>pct</code> inférieur à 100 ou <code>t=y</code>'],
-			['none', 'aucun enregistrement DMARC ou un enregistrement invalide (p. ex. plusieurs)'],
+			['monitoring', '<code>p=none</code> avec adresse de rapport (<code>rua</code>), ou une politique avec <code>pct</code> inférieur à 100 ou <code>t=y</code>'],
+			['none', 'aucun enregistrement DMARC, un enregistrement invalide (p. ex. plusieurs), ou <code>p=none</code> sans adresse de rapport : un tel enregistrement ne protège pas et personne ne reçoit de rapports'],
 			['unknown', 'aucun site web connu, domaine inexistant, ou erreur DNS. Les domaines sans MX sont classés selon leur enregistrement DMARC comme les autres.']
 		]
 	},
@@ -208,8 +208,8 @@ export const method: Record<Lang, Method> = {
 		rules: [
 			['blocked', '<code>p=reject</code>, senza <code>pct</code> inferiore a 100 né <code>t=y</code>'],
 			['filtered', '<code>p=quarantine</code>, senza <code>pct</code> inferiore a 100 né <code>t=y</code>'],
-			['monitoring', '<code>p=none</code>, oppure una politica con <code>pct</code> inferiore a 100 o <code>t=y</code>'],
-			['none', 'nessun record DMARC o un record non valido (p. es. più record)'],
+			['monitoring', '<code>p=none</code> con indirizzo per i rapporti (<code>rua</code>), oppure una politica con <code>pct</code> inferiore a 100 o <code>t=y</code>'],
+			['none', 'nessun record DMARC, un record non valido (p. es. più record), oppure <code>p=none</code> senza indirizzo per i rapporti: un tale record non protegge e nessuno riceve rapporti'],
 			['unknown', 'nessun sito web noto, dominio inesistente, o errore DNS. I domini senza MX sono classificati in base al loro record DMARC come gli altri.']
 		]
 	},
@@ -225,8 +225,8 @@ export const method: Record<Lang, Method> = {
 		rules: [
 			['blocked', '<code>p=reject</code>, with no <code>pct</code> below 100 and no <code>t=y</code>'],
 			['filtered', '<code>p=quarantine</code>, with no <code>pct</code> below 100 and no <code>t=y</code>'],
-			['monitoring', '<code>p=none</code>, or a policy with <code>pct</code> below 100 or <code>t=y</code>'],
-			['none', 'no DMARC record, or an invalid one (e.g. several records)'],
+			['monitoring', '<code>p=none</code> with a report address (<code>rua</code>), or a policy with <code>pct</code> below 100 or <code>t=y</code>'],
+			['none', 'no DMARC record, an invalid one (e.g. several records), or <code>p=none</code> without a report address: such a record protects nothing and nobody receives reports'],
 			['unknown', 'no known website, the domain does not exist, or a DNS error. Domains without MX are rated by their DMARC record like all others.']
 		]
 	}

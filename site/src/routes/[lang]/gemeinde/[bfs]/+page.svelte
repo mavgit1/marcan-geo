@@ -26,8 +26,12 @@
 	{#if mail}
 		<p class="lead">
 			{tr.sendsFrom(m.name, mail.domain)}
-			{#if mail.policy}<code>{mail.policy}</code>:{/if}
-			{tr.explain[mail.status]}
+			{#if mail.status === 'none' && mail.policy === 'p=none'}
+				{tr.noRua}
+			{:else}
+				{#if mail.policy}<code>{mail.policy}</code>:{/if}
+				{tr.explain[mail.status]}
+			{/if}
 		</p>
 	{:else}
 		<p class="lead">{tr.explain.unknown}</p>

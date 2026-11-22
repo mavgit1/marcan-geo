@@ -1,10 +1,12 @@
 //! Raw answers -> one status per municipality. Pure: no network, no clock.
 //!
-//! Status rules (CLASSIFIER_VERSION 3):
+//! Status rules (CLASSIFIER_VERSION 4):
 //! - blocked:    p=reject,     pct absent or 100, not t=y
 //! - filtered:   p=quarantine, pct absent or 100, not t=y
-//! - monitoring: p=none, or any policy with pct<100 or t=y (pct is gone in DMARCbis)
-//! - none:       no DMARC record, or an invalid one (receivers ignore it)
+//! - monitoring: p=none with a report address (rua), or any policy with
+//!               pct<100 or t=y (pct is gone in DMARCbis)
+//! - none:       no DMARC record, an invalid one (receivers ignore it), or
+//!               p=none without rua: it neither protects nor reports anything
 //! - unknown:    no data: no website, the domain does not exist, or a DNS error
 //!
 //! A domain without MX is rated by its DMARC record like any other: a domain
@@ -24,7 +26,7 @@ use crate::registry::{self, Municipality};
 use crate::scan::{RESOLVERS, RawAnswer};
 use crate::domain;
 
-pub const CLASSIFIER_VERSION: u32 = 3;
+pub const CLASSIFIER_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -359,6 +361,10 @@ pub fn classify(m: &Municipality, mail_domain: &str, source: &str, ans: &Answers
                 }
                 "reject" => Status::Blocked,
                 "quarantine" => Status::Filtered,
+                _ if !dm.rua => {
+                    reasons.push("p=none without rua".into());
+                    Status::None
+                }
                 _ => Status::Monitoring,
             };
             (status, reasons.join(","))
@@ -454,6 +460,23 @@ mod tests {
     }
 
     #[test]
+    fn p_none_needs_reports() {
+        let base = |rec: &'static str| {
+            ans(&[
+                ("google", "x.ch", "MX", &["10 mx.x.ch."]),
+                ("google", "x.ch", "TXT", &[]),
+                ("google", "_dmarc.x.ch", "TXT", &[rec]),
+            ])
+        };
+        let m = muni("x.ch");
+        let bare = classify(&m, "x.ch", "web", &base("v=DMARC1; p=none"), "s");
+        assert_eq!(bare.status, Status::None);
+        assert_eq!(bare.status_reason, "p=none without rua");
+        let reported = classify(&m, "x.ch", "web", &base("v=DMARC1; p=none; rua=mailto:d@x.ch"), "s");
+        assert_eq!(reported.status, Status::Monitoring);
+    }
+
+    #[test]
     fn weakest_domain_counts() {
         let a = ans(&[
             ("google", "x.ch", "MX", &["10 mx.x.ch."]),
@@ -507,7 +530,8 @@ mod tests {
     fn policies() {
         assert_eq!(run_one("a.ch", &["v=DMARC1; p=reject; rua=mailto:x@a.ch"], None).status, Status::Blocked);
         assert_eq!(run_one("a.ch", &["v=DMARC1; p=quarantine"], None).status, Status::Filtered);
-        assert_eq!(run_one("a.ch", &["v=DMARC1; p=none"], None).status, Status::Monitoring);
+        assert_eq!(run_one("a.ch", &["v=DMARC1; p=none; rua=mailto:x@a.ch"], None).status, Status::Monitoring);
+        assert_eq!(run_one("a.ch", &["v=DMARC1; p=none"], None).status, Status::None);
         assert_eq!(run_one("a.ch", &[], None).status, Status::None);
         assert_eq!(run_one("a.ch", &["unrelated"], None).status, Status::None);
     }
@@ -535,7 +559,7 @@ mod tests {
         assert_eq!((r.status, r.dmarc_found_at.as_str()), (Status::Filtered, "org"));
         let r = run_one("x.ne.ch", &[], Some(("_dmarc.ne.ch", &["v=DMARC1; p=reject"])));
         assert_eq!(r.status, Status::Blocked);
-        let r = run_one("x.ne.ch", &["v=DMARC1; p=none"], Some(("_dmarc.ne.ch", &["v=DMARC1; p=reject"])));
+        let r = run_one("x.ne.ch", &["v=DMARC1; p=none; rua=mailto:x@x.ne.ch"], Some(("_dmarc.ne.ch", &["v=DMARC1; p=reject"])));
         assert_eq!(r.status, Status::Monitoring);
     }
 

@@ -26,8 +26,8 @@ Site: https://mavgit1.github.io/marcan-geo/
 |---|---|
 | Spoofing blocked | `p=reject`, no `pct` below 100, no `t=y` |
 | Spoofing filtered | `p=quarantine`, no `pct` below 100, no `t=y` |
-| Monitoring only | `p=none`, or any policy with `pct` below 100 or `t=y` |
-| No DMARC | no DMARC record, or an invalid one |
+| Monitoring only | `p=none` with a report address (`rua`), or any policy with `pct` below 100 or `t=y` |
+| No DMARC | no DMARC record, an invalid one, or `p=none` without `rua` (protects nothing, reports to nobody) |
 | No data | no known website or domain, or a DNS error |
 
 A domain that receives no mail still needs DMARC: anyone can send mail in its

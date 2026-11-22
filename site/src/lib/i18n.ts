@@ -81,6 +81,7 @@ type Dict = {
 	cantonContext: (canton: string, p: string) => string;
 	techDetails: string;
 	otherDomains: string;
+	noRua: string;
 };
 
 const de: Dict = {
@@ -161,6 +162,7 @@ const de: Dict = {
 	cantonContext: (c, p) => `Im Kanton ${c} blockieren oder filtern ${p} der Gemeinden gefälschte Mails.`,
 	techDetails: 'Technische Details',
 	otherDomains: 'Weitere Domains der Gemeinde',
+	noRua: 'Der Eintrag p=none hat keine Berichtsadresse (rua): Er schützt nicht, und niemand erhält Berichte. Er zählt deshalb als «Kein DMARC».',
 };
 
 const fr: Dict = {
@@ -241,6 +243,7 @@ const fr: Dict = {
 	cantonContext: (c, p) => `Canton ${c} : ${p} des communes bloquent ou filtrent les e-mails usurpés.`,
 	techDetails: 'Détails techniques',
 	otherDomains: 'Autres domaines de la commune',
+	noRua: 'L’enregistrement p=none n’a pas d’adresse de rapport (rua) : il ne protège pas et personne ne reçoit de rapports. Il compte donc comme « Pas de DMARC ».',
 };
 
 const it: Dict = {
@@ -321,6 +324,7 @@ const it: Dict = {
 	cantonContext: (c, p) => `Canton ${c}: il ${p} dei comuni blocca o filtra le e-mail falsificate.`,
 	techDetails: 'Dettagli tecnici',
 	otherDomains: 'Altri domini del comune',
+	noRua: 'Il record p=none non ha un indirizzo per i rapporti (rua): non protegge e nessuno riceve rapporti. Conta quindi come «Nessun DMARC».',
 };
 
 const en: Dict = {
@@ -401,6 +405,7 @@ const en: Dict = {
 	cantonContext: (c, p) => `In ${c}, ${p} of municipalities block or filter spoofed mail.`,
 	techDetails: 'Technical details',
 	otherDomains: 'Other domains of the municipality',
+	noRua: 'The p=none record has no report address (rua): it protects nothing and nobody receives reports. It therefore counts as “No DMARC”.',
 };
 
 const dicts: Record<Lang, Dict> = { de, fr, it, en };
