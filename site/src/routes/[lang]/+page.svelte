@@ -41,11 +41,14 @@
 		(acc, m) => {
 			const [first, was] = m.history[0] ?? [];
 			if (first !== 0 || RANK[was] < 0 || RANK[m.status] < 0) return acc;
-			if (RANK[m.status] < RANK[was]) acc.up++;
+			if (RANK[m.status] < RANK[was]) {
+				acc.up++;
+				if (was === 'none') acc.fromNone++;
+			}
 			if (RANK[m.status] > RANK[was]) acc.down++;
 			return acc;
 		},
-		{ up: 0, down: 0 }
+		{ up: 0, fromNone: 0, down: 0 }
 	);
 
 	// Structured data for search engines: the measurement as a Dataset.
@@ -196,7 +199,7 @@
 
 {#if pub.scans.length > 1 && munis.length}
 	<p class="prose text">
-		{tr.changePara(date(lang, pub.scans[0]), change.up, change.down, pub.none_without_rua[0], latest(pub.none_without_rua))}
+		{tr.changePara(date(lang, pub.scans[0]), change.up, change.fromNone, change.down, pub.none_without_rua[0], latest(pub.none_without_rua))}
 	</p>
 {/if}
 
